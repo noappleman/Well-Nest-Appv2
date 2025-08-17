@@ -71,6 +71,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='translations.js') }}"></script>
-<script src="{{ url_for('static', filename='news.js') }}"></script>
+<script src="{{ url_for('protected_js', filename='translations.js') }}"></script>
+<script src="{{ url_for('protected_js', filename='news.js') }}"></script>
 {% endblock %}

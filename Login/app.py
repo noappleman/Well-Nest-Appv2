@@ -284,18 +284,23 @@ with app.app_context():
 @app.route('/protected_js/<path:filename>')
 def protected_js(filename):
     """Serve JavaScript files from protected directory with security checks"""
-    # Only allow specific files to be served
-    allowed_files = ['webauthn.js']
+    # Only allow specific JavaScript files to be loaded during login/register process
+    # or when needed for specific functionality
+    allowed_files = ['webauthn.js', 'news.js', 'translations.js', 'test-news.js']
     
     if filename not in allowed_files:
-        abort(404)  # Not found for any files not explicitly allowed
+        abort(404)  # Not Found if file is not in allowed list
     
-    # Check if user is authenticated or if this is a login-related request
-    if not current_user.is_authenticated:
-        # Check referer to ensure it's coming from our login page
-        referer = request.headers.get('Referer', '')
+    # Check referer to ensure it's coming from our pages
+    referer = request.headers.get('Referer', '')
+    
+    # For webauthn.js, only allow access from login/register pages
+    if filename == 'webauthn.js':
         if not referer or not (('/login' in referer) or ('/register' in referer)):
             abort(403)  # Forbidden if not from login/register page
+    # For other files, require authentication
+    elif not current_user.is_authenticated:
+        abort(403)  # Forbidden if not authenticated
     
     # Set no-cache headers to prevent caching of these sensitive files
     response = send_from_directory(os.path.join(app.root_path, 'protected_assets'), filename)
