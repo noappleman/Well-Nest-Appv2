@@ -9,6 +9,7 @@ import google.generativeai as genai  # Import Google Generative AI
 import random  # For selecting random fallback responses
 from datetime import datetime, timedelta
 from threading import Thread
+from flask import send_from_directory  # Add this import for making HTTP requests
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from cryptography.fernet import Fernet
@@ -278,6 +279,30 @@ s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 # Ensure database schema is up to date
 with app.app_context():
     ensure_db_schema()
+    
+# Secure route to serve protected JavaScript files
+@app.route('/protected_js/<path:filename>')
+def protected_js(filename):
+    """Serve JavaScript files from protected directory with security checks"""
+    # Only allow specific files to be served
+    allowed_files = ['webauthn.js']
+    
+    if filename not in allowed_files:
+        abort(404)  # Not found for any files not explicitly allowed
+    
+    # Check if user is authenticated or if this is a login-related request
+    if not current_user.is_authenticated:
+        # Check referer to ensure it's coming from our login page
+        referer = request.headers.get('Referer', '')
+        if not referer or not (('/login' in referer) or ('/register' in referer)):
+            abort(403)  # Forbidden if not from login/register page
+    
+    # Set no-cache headers to prevent caching of these sensitive files
+    response = send_from_directory(os.path.join(app.root_path, 'protected_assets'), filename)
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 # WebAuthn configuration
 RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'localhost')  # Domain name without protocol
