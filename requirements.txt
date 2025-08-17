@@ -38,6 +38,6 @@ requests==2.31.0
 # Utilities
 python-dotenv==1.0.0
 
-# Database drivers (uncomment as needed)
-# psycopg2-binary==2.9.9  # PostgreSQL
+# Database drivers
+psycopg2-binary==2.9.9  # PostgreSQL
 # pymysql==1.1.0  # MySQL
