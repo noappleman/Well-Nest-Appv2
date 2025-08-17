@@ -2650,8 +2650,8 @@ def generate_ai_response(message, username):
             # If API test passed, try using the SDK
             genai.configure(api_key=api_key)
             
-            # Use a model with potentially higher quota limits
-            model_name = 'models/gemini-1.5-flash-latest'
+            # Use a model with better compatibility and reliability
+            model_name = 'gemini-pro'
             app.logger.info(f"Using model: {model_name}")
             
             # Initialize the model with a timeout
@@ -2682,11 +2682,23 @@ def generate_ai_response(message, username):
                 error_msg = str(api_error)
                 app.logger.error(f"Gemini API call failed: {error_msg}", exc_info=True)
                 
-                # Specific error handling
+                # Detailed error diagnostics
+                error_type = type(api_error).__name__
+                app.logger.error(f"Error type: {error_type}")
+                
+                # Check for common error patterns
                 if "quota" in error_msg.lower() or "rate limit" in error_msg.lower():
+                    app.logger.error("API quota or rate limit exceeded")
                     return "I'm currently at capacity. Please try again in a little while. In the meantime, here's a health tip: Taking deep breaths can help reduce stress!"
                 elif "timed out" in error_msg.lower():
+                    app.logger.error("API request timed out")
                     return "The AI service is taking too long to respond. Please try again in a moment."
+                elif "authentication" in error_msg.lower() or "auth" in error_msg.lower() or "key" in error_msg.lower():
+                    app.logger.error("API authentication error - likely invalid API key")
+                    return "I'm having trouble authenticating with the AI service. Please check the API key configuration."
+                elif "model" in error_msg.lower() and ("not found" in error_msg.lower() or "invalid" in error_msg.lower()):
+                    app.logger.error(f"Invalid model name: {model_name}")
+                    return "I'm having trouble with the AI model configuration. Please try again later."
                 
                 return fallback_response
             
