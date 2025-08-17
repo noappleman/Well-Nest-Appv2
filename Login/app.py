@@ -245,11 +245,39 @@ mail = Mail(app)
 login_manager = LoginManager(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Function to ensure database schema is up to date
+def ensure_db_schema():
+    try:
+        with app.app_context():
+            # Check if the columns exist in the users table
+            inspector = db.inspect(db.engine)
+            columns = [column['name'] for column in inspector.get_columns('users')]
+            
+            # Add failed_login_attempts column if it doesn't exist
+            if 'failed_login_attempts' not in columns:
+                app.logger.info("Adding failed_login_attempts column to users table")
+                db.session.execute(db.text('ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0'))
+            
+            # Add account_locked_until column if it doesn't exist
+            if 'account_locked_until' not in columns:
+                app.logger.info("Adding account_locked_until column to users table")
+                db.session.execute(db.text('ALTER TABLE users ADD COLUMN account_locked_until TIMESTAMP'))
+            
+            db.session.commit()
+            app.logger.info("Database schema check completed successfully")
+    except Exception as e:
+        app.logger.error(f"Error during database schema check: {str(e)}")
+        # Continue anyway - the error handling in the routes will handle missing columns
+
 # Initialize CSRF protection
 csrf = CSRFProtect(app)
 login_manager.login_view = 'login'
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+# Ensure database schema is up to date
+with app.app_context():
+    ensure_db_schema()
 
 # WebAuthn configuration
 RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'localhost')  # Domain name without protocol
