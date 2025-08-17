@@ -2511,7 +2511,7 @@ def chatbot():
     """Render the chatbot page"""
     return render_template('Chatbot/chatbot.html')
 
-@app.route('/chatbot/message', methods=['POST'], endpoint='chatbot_message')
+@app.route('/chatbot/message', methods=['POST'])
 @login_required
 def chatbot_message():
     """Handle chat messages and return AI responses"""
