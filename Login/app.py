@@ -216,10 +216,15 @@ def log_security_event(event_type, username=None, ip_address=None, details=None)
 # Security headers
 @app.after_request
 def add_security_headers(response):
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    # Only add security headers for HTML responses to avoid API issues
+    if response.mimetype == 'text/html':
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        
+        # Only add HSTS header in production and for HTTPS requests
+        if os.environ.get('FLASK_ENV') == 'production' and request.is_secure:
+            response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
 
 # Initialize extensions
