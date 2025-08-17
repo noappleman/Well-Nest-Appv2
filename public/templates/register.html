@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Wellnest - Register{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row justify-content-center align-items-center m-0" style="min-height: 100vh;">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 p-0">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-wellnest text-white text-center py-4">
+                    <h3 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Create Account</h3>
+                </div>
+                <div class="card-body p-3">
+                    <div class="text-center mb-3">
+                        <p class="text-muted">Join Wellnest today!</p>
+                    </div>
+                    <form method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" name="username" id="username" placeholder="Choose a username" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" name="email" id="email" placeholder="Enter your email" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" name="password" id="password" placeholder="Create a password" required>
+                            </div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-wellnest btn-lg">Create Account</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3">
+                    <div class="small">Already have an account? <a href="{{ url_for('login') }}" class="text-wellnest">Log in</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

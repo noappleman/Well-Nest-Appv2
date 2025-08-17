@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Newsletter - News for Everyone{% endblock %}
+
+{% block styles %}
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='news.css') }}">
+<style>
+    /* Add any additional styles here */
+</style>
+{% endblock %}
+
+{% block content %}
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">📰 Newsletter</h1>
+            <div class="controls">
+                <div class="language-selector">
+                    <label for="language" data-translate="language">Language:</label>
+                    <select id="language" class="language-select">
+                        <option value="en">English</option>
+                        <option value="zh">中文</option>
+                        <option value="ms">Bahasa Melayu</option>
+                        <option value="hi">हिन्दी</option>
+                    </select>
+                </div>
+                <div class="news-source-selector">
+                    <label for="newsSource" data-translate="newsSource">News Source:</label>
+                    <select id="newsSource" class="news-select">
+                        <option value="general">General News</option>
+                        <option value="st-singapore">Straits Times - Singapore</option>
+                        <option value="st-asia">Straits Times - Asia</option>
+                        <option value="st-world">Straits Times - World</option>
+                        <option value="st-business">Straits Times - Business</option>
+                        <option value="st-tech">Straits Times - Tech</option>
+                        <option value="bbc-news">BBC News</option>
+                        <option value="cnn">CNN</option>
+                        <option value="reuters">Reuters</option>
+                        <option value="associated-press">Associated Press</option>
+                        <option value="the-times-of-india">Times of India</option>
+                    </select>
+                </div>
+                <button id="refreshBtn" class="refresh-btn" data-translate="refresh">🔄 Refresh News</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p data-translate="loading">Loading news...</p>
+            </div>
+            
+            <div class="error-message" id="errorMessage" style="display: none;">
+                <p data-translate="error">Unable to load news. Please try again later.</p>
+                <button id="retryBtn" class="retry-btn" data-translate="retry">Try Again</button>
+            </div>
+
+            <div class="news-grid" id="newsGrid">
+                <!-- News articles will be dynamically loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p data-translate="footer">&copy; 2024 Newsletter App - News for Everyone</p>
+        </div>
+    </footer>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='translations.js') }}"></script>
+<script src="{{ url_for('static', filename='news.js') }}"></script>
+{% endblock %}

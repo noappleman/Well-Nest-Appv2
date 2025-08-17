@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Event{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='event_add.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 900px;">
+    <div class="card shadow p-4">
+        <h3 class="text-danger fw-bold mb-4">Edit Event</h3>
+        <form id="eventForm" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="title" class="form-label">Event Title</label>
+                <input type="text" class="form-control" id="title" name="title" maxlength="70"
+                    placeholder="Maximum 70 characters" value="{{ event.title }}" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" maxlength="150"
+                    placeholder="Maximum 150 characters" required>{{ event.description }}</textarea>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="category" class="form-label">Category</label>
+                    <input type="text" class="form-control" id="category" name="category" maxlength="30"
+                        placeholder="E.g. (Taichi, badminton,...)" value="{{ event.category }}" required />
+                </div>
+                <div class="col">
+                    <label for="sessions" class="form-label">No. of Sessions</label>
+                    <input type="number" class="form-control" id="sessions" name="sessions" min="1" max="30"
+                        placeholder="Maximum 30 sessions" value="{{ event.sessions }}" required />
+                </div>
+                <div class="col">
+                    <label for="price" class="form-label">Price (optional)</label>
+                    <input type="number" class="form-control" id="price" name="price" min="0" max="200"
+                        placeholder="Maximum S$200" value="{{ event.price }}" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="vacancy" class="form-label">Vacancy</label>
+                    <input type="number" class="form-control" id="vacancy" name="vacancy" min="1" max="100"
+                        placeholder="Maximum Vacancy: 100" value="{{ event.vacancy }}" required />
+                </div>
+                <div class="col">
+                    <label for="intensity" class="form-label">Intensity</label>
+                    <select class="form-select" id="intensity" name="intensity" required>
+                        <option value="">Select intensity</option>
+                        <option value="Low intensity" {% if event.intensity == "Low intensity" %}selected{% endif %}>Low</option>
+                        <option value="Moderate intensity" {% if event.intensity == "Moderate intensity" %}selected{% endif %}>Moderate</option>
+                        <option value="High intensity" {% if event.intensity == "High intensity" %}selected{% endif %}>High</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="image" class="form-label">Upload an Image (optional)</label>
+                    <input type="file" class="form-control" id="image" name="image"
+                        accept="image/png,image/jpeg,image/jpg,image/webp" />
+                    {% if event.image_path %}
+                    <div class="mt-2">
+                        <small>Current image: <a href="{{ url_for('static', filename=event.image_path) }}" target="_blank">View</a></small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" name="location" value="{{ event.location }}" required />
+            </div>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" value="{{ event.event_date.strftime('%Y-%m-%d') }}" required />
+                </div>
+                <div class="col">
+                    <label for="startTime" class="form-label">Start Time</label>
+                    <input type="time" class="form-control" id="startTime" name="startTime" value="{{ event.start_time.strftime('%H:%M') }}" required />
+                </div>
+                <div class="col">
+                    <label for="endTime" class="form-label">End Time</label>
+                    <input type="time" class="form-control" id="endTime" name="endTime" value="{{ event.end_time.strftime('%H:%M') }}" required />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="organizer" class="form-label">Organizer</label>
+                <input type="text" class="form-control" id="organizer" name="organizer" maxlength="50"
+                    placeholder="Name of organizer" value="{{ event.organizer }}" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="contact" class="form-label">Contact Email</label>
+                <input type="email" class="form-control" id="contact" name="contact" placeholder="Email for inquiries"
+                    value="{{ event.contact }}" required />
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="termsCheck" required />
+                    <label class="form-check-label" for="termsCheck">
+                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and
+                            Conditions</a>
+                    </label>
+                </div>
+            </div>
+
+            <div id="captchaContainer" class="mb-3" style="min-height: 78px;">
+                <div class="g-recaptcha" data-sitekey="6LfwSacrAAAAANAbbMWxQcDSOCrCowgmVONuibvV" data-theme="light" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+                <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('events') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger">Update Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+    // reCAPTCHA callback functions
+    function onRecaptchaSuccess(token) {
+        document.getElementById('g-recaptcha-response').value = token;
+    }
+    
+    function onRecaptchaExpired() {
+        document.getElementById('g-recaptcha-response').value = '';
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById("eventForm");
+        const captchaContainer = document.getElementById("captchaContainer");
+        const submitBtn = document.querySelector("button[type='submit']");
+
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                // Client-side validation
+                const title = document.getElementById("title").value.trim();
+                const description = document.getElementById("description").value.trim();
+                const category = document.getElementById("category").value.trim();
+                const sessions = document.getElementById("sessions").value;
+                const price = document.getElementById("price").value || "0";
+                const vacancy = document.getElementById("vacancy").value;
+                const intensity = document.getElementById("intensity").value;
+                const location = document.getElementById("location").value.trim();
+                const date = document.getElementById("date").value;
+                const startTime = document.getElementById("startTime").value;
+                const endTime = document.getElementById("endTime").value;
+                const organizer = document.getElementById("organizer").value.trim();
+                const contact = document.getElementById("contact").value.trim();
+                const termsCheck = document.getElementById("termsCheck");
+
+                // Validate required fields
+                if (!title || !description || !category || !sessions || !vacancy || !intensity || 
+                    !location || !date || !startTime || !endTime || !organizer || !contact) {
+                    e.preventDefault();
+                    alert("Please fill in all required fields.");
+                    return false;
+                }
+
+                // Validate price is a positive number
+                if (price && (isNaN(price) || parseFloat(price) < 0)) {
+                    e.preventDefault();
+                    alert("Please enter a valid price (must be a positive number).");
+                    return false;
+                }
+
+                // Validate sessions is a positive integer
+                if (!/^\d+$/.test(sessions) || parseInt(sessions) <= 0) {
+                    e.preventDefault();
+                    alert("Please enter a valid number of sessions (must be a positive integer).");
+                    return false;
+                }
+
+                // Validate vacancy is a positive integer
+                if (!/^\d+$/.test(vacancy) || parseInt(vacancy) <= 0) {
+                    e.preventDefault();
+                    alert("Please enter a valid vacancy number (must be a positive integer).");
+                    return false;
+                }
+
+                // Validate terms checkbox
+                if (!termsCheck.checked) {
+                    e.preventDefault();
+                    alert("You must agree to the Terms and Conditions to proceed.");
+                    return false;
+                }
+
+                // Validate reCAPTCHA
+                const recaptchaResponse = grecaptcha && grecaptcha.getResponse();
+                if (!recaptchaResponse) {
+                    e.preventDefault();
+                    alert("Please complete the reCAPTCHA verification.");
+                    return false;
+                }
+
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(contact)) {
+                    e.preventDefault();
+                    alert("Please enter a valid email address.");
+                    return false;
+                }
+
+                // Validate time range
+                if (startTime >= endTime) {
+                    e.preventDefault();
+                    alert("End time must be after start time.");
+                    return false;
+                }
+                
+                // If all validations pass, the form will submit normally to the server
+                return true;
+            });
+        }
+    });
+</script>
+{% endblock %}

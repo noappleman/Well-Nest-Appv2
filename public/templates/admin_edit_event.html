@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Event</h2>
+    <p>Admin can edit any event in the system</p>
+    
+    <div class="mb-4">
+        <a href="{{ url_for('admin_events') }}" class="btn btn-secondary">Back to Events Management</a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h3 class="card-title mb-0">Event Details</h3>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('admin_edit_event', event_id=event.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="title" class="form-label">Event Title*</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ event.title }}" required maxlength="70">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="category" class="form-label">Category*</label>
+                        <select class="form-select" id="category" name="category" required>
+                            <option value="">Select a category</option>
+                            <option value="Fitness" {% if event.category == 'Fitness' %}selected{% endif %}>Fitness</option>
+                            <option value="Wellness" {% if event.category == 'Wellness' %}selected{% endif %}>Wellness</option>
+                            <option value="Nutrition" {% if event.category == 'Nutrition' %}selected{% endif %}>Nutrition</option>
+                            <option value="Mental Health" {% if event.category == 'Mental Health' %}selected{% endif %}>Mental Health</option>
+                            <option value="Medical" {% if event.category == 'Medical' %}selected{% endif %}>Medical</option>
+                            <option value="Community" {% if event.category == 'Community' %}selected{% endif %}>Community</option>
+                            <option value="Other" {% if event.category == 'Other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description*</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" required maxlength="150">{{ event.description }}</textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="sessions" class="form-label">Number of Sessions*</label>
+                        <input type="number" class="form-control" id="sessions" name="sessions" min="1" value="{{ event.sessions }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="price" class="form-label">Price ($)*</label>
+                        <input type="number" class="form-control" id="price" name="price" min="0" step="0.01" value="{{ event.price }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="vacancy" class="form-label">Vacancy*</label>
+                        <input type="number" class="form-control" id="vacancy" name="vacancy" min="1" value="{{ event.vacancy }}" required>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="intensity" class="form-label">Intensity*</label>
+                        <select class="form-select" id="intensity" name="intensity" required>
+                            <option value="">Select intensity</option>
+                            <option value="Low" {% if event.intensity == 'Low' %}selected{% endif %}>Low</option>
+                            <option value="Medium" {% if event.intensity == 'Medium' %}selected{% endif %}>Medium</option>
+                            <option value="High" {% if event.intensity == 'High' %}selected{% endif %}>High</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label for="location" class="form-label">Location*</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ event.location }}" required maxlength="100">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="event_date" class="form-label">Event Date*</label>
+                        <input type="date" class="form-control" id="event_date" name="event_date" value="{{ event.event_date.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="start_time" class="form-label">Start Time*</label>
+                        <input type="time" class="form-control" id="start_time" name="start_time" value="{{ event.start_time.strftime('%H:%M') }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="end_time" class="form-label">End Time*</label>
+                        <input type="time" class="form-control" id="end_time" name="end_time" value="{{ event.end_time.strftime('%H:%M') }}" required>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="organizer" class="form-label">Organizer*</label>
+                        <input type="text" class="form-control" id="organizer" name="organizer" value="{{ event.organizer }}" required maxlength="50">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="contact" class="form-label">Contact*</label>
+                        <input type="text" class="form-control" id="contact" name="contact" value="{{ event.contact }}" required maxlength="100">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="image_path" class="form-label">Image URL (Optional)</label>
+                    <input type="text" class="form-control" id="image_path" name="image_path" value="{{ event.image_path or '' }}" maxlength="255">
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-warning">Update Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

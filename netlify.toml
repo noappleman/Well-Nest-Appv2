@@ -1,0 +1,11 @@
+[build]
+  publish = "public"
+  command = "cp -r Login/static/* public/ && cp -r Chat/static/* public/ 2>/dev/null || true"
+
+[build.environment]
+  PYTHON_VERSION = "3.9"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
