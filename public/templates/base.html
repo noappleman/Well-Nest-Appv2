@@ -291,7 +291,11 @@
         }
     </style>
 
-    <script src="{{ url_for('static', filename='webauthn.js') }}"></script>
+    {% block head_scripts %}{% endblock %}
+    
+    {% if current_user.is_authenticated %}<!-- Load WebAuthn script securely -->    
+    <script src="{{ url_for('protected_js', filename='webauthn.js') }}"></script>
+    {% endif %}
     <script>
     // Handle footer feedback form submission
     document.addEventListener('DOMContentLoaded', function() {
