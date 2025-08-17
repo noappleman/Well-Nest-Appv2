@@ -437,7 +437,8 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    failed_login_attempts = db.Column(db.Integer, default=0)  # Track failed login attempts
+    # These columns might not exist in all environments yet
+    failed_login_attempts = db.Column(db.Integer, default=0, nullable=True)  # Track failed login attempts
     account_locked_until = db.Column(db.DateTime, nullable=True)  # Timestamp until account is locked
     
     credentials = db.relationship('WebAuthnCredential', backref=db.backref('user_ref', lazy='joined'), lazy=True,
@@ -1303,18 +1304,27 @@ def login():
         # Regular user login
         user = User.query.filter_by(username=username).first()
         
-        # Check if account is locked
-        if user and user.account_locked_until and user.account_locked_until > datetime.now():
-            remaining_time = (user.account_locked_until - datetime.now()).total_seconds() / 60
-            flash(f'Account temporarily locked due to too many failed attempts. Try again in {int(remaining_time)} minutes.', 'error')
-            log_security_event('LOGIN_BLOCKED', username, request.remote_addr, 'Account temporarily locked')
-            return redirect(url_for('login'))
+        # Check if account is locked - safely handle missing columns
+        try:
+            if user and hasattr(user, 'account_locked_until') and user.account_locked_until and user.account_locked_until > datetime.now():
+                remaining_time = (user.account_locked_until - datetime.now()).total_seconds() / 60
+                flash(f'Account temporarily locked due to too many failed attempts. Try again in {int(remaining_time)} minutes.', 'error')
+                log_security_event('LOGIN_BLOCKED', username, request.remote_addr, 'Account temporarily locked')
+                return redirect(url_for('login'))
+        except Exception as e:
+            app.logger.error(f"Error checking account lock: {str(e)}")
+            # Continue with login process if there's an error with the new columns
             
         if user and user.check_password(password):
-            # Reset failed login attempts on successful login
-            user.failed_login_attempts = 0
-            user.account_locked_until = None
-            db.session.commit()
+            # Reset failed login attempts on successful login - safely handle missing columns
+            try:
+                if hasattr(user, 'failed_login_attempts'):
+                    user.failed_login_attempts = 0
+                if hasattr(user, 'account_locked_until'):
+                    user.account_locked_until = None
+                db.session.commit()
+            except Exception as e:
+                app.logger.error(f"Error resetting login attempts: {str(e)}")
             session['username_for_otp'] = user.username
             totp = pyotp.TOTP(user.otp_secret)
             otp = totp.now()
@@ -1343,13 +1353,21 @@ def login():
         # Log failed login attempts
         log_security_event('LOGIN_FAILED', username, request.remote_addr, 'Invalid username or password')
         
-        # Increment failed login attempts and potentially lock account
+        # Increment failed login attempts and potentially lock account - safely handle missing columns
         if user:
-            user.failed_login_attempts += 1
-            if user.failed_login_attempts >= 5:  # Lock account after 5 failed attempts
-                user.account_locked_until = datetime.now() + timedelta(minutes=15)  # Lock for 15 minutes
-                log_security_event('ACCOUNT_LOCKED', username, request.remote_addr, f'Account locked for 15 minutes after {user.failed_login_attempts} failed attempts')
-            db.session.commit()
+            try:
+                if hasattr(user, 'failed_login_attempts'):
+                    # Initialize to 0 if None
+                    if user.failed_login_attempts is None:
+                        user.failed_login_attempts = 0
+                    
+                    user.failed_login_attempts += 1
+                    if user.failed_login_attempts >= 5 and hasattr(user, 'account_locked_until'):  # Lock account after 5 failed attempts
+                        user.account_locked_until = datetime.now() + timedelta(minutes=15)  # Lock for 15 minutes
+                        log_security_event('ACCOUNT_LOCKED', username, request.remote_addr, f'Account locked for 15 minutes after {user.failed_login_attempts} failed attempts')
+                db.session.commit()
+            except Exception as e:
+                app.logger.error(f"Error tracking failed login attempts: {str(e)}")
             
         flash('Invalid username or password.', 'error')
     return render_template('login.html')
