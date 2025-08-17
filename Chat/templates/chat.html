@@ -293,10 +293,9 @@
         </div>
     </div>
 
-    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js" nonce="{{ csp_nonce }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" nonce="{{ csp_nonce }}"></script>
+    <!-- Bootstrap Bundle with Popper (duplicate removed) -->
     
     <script nonce="{{ csp_nonce }}">
         // Manually initialize dropdowns to ensure they work
@@ -610,7 +609,7 @@
             });
         });
         
-        // Handle contact clicks
+        // Handle contact clicks with proper event listeners
         document.querySelectorAll('.contact-item').forEach(item => {
             item.addEventListener('click', function() {
                 const userId = this.dataset.userId;
