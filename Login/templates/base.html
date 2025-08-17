@@ -11,7 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Only include style.css for login and registration pages -->
     {% if request.path in ['/login', '/register', '/verify_otp'] %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('protected_css', filename='style.css') }}">
     {% endif %}
 
     <style>

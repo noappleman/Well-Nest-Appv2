@@ -309,6 +309,30 @@ def protected_js(filename):
     response.headers['Expires'] = '0'
     return response
 
+# Secure route to serve protected CSS files
+@app.route('/protected_css/<path:filename>')
+def protected_css(filename):
+    """Serve CSS files from protected directory with security checks"""
+    # Only allow specific CSS files
+    allowed_files = ['style.css', 'events.css', 'event_add.css', 'news.css']
+    
+    if filename not in allowed_files:
+        abort(404)  # Not Found if file is not in allowed list
+    
+    # All CSS files require authentication or coming from login/register pages
+    if not current_user.is_authenticated:
+        # Check referer to ensure it's coming from our login/register pages
+        referer = request.headers.get('Referer', '')
+        if not referer or not (('/login' in referer) or ('/register' in referer)):
+            abort(403)  # Forbidden if not from login/register page and not authenticated
+    
+    # Set no-cache headers to prevent caching of these sensitive files
+    response = send_from_directory(os.path.join(app.root_path, 'protected_assets/css'), filename)
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 # WebAuthn configuration
 RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'localhost')  # Domain name without protocol
 RP_NAME = os.environ.get('WEBAUTHN_RP_NAME', 'Secure Login App')
