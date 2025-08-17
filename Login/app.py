@@ -2614,13 +2614,17 @@ def generate_ai_response(message, username):
             app.logger.error("No internet connection detected")
             return "I'm having trouble connecting to the internet. Please check your network connection and try again."
         
-        # Load environment variables with explicit path
-        env_path = os.path.join(os.path.dirname(__file__), '.env')
-        app.logger.info(f"Loading .env from: {env_path}")
-        load_dotenv(dotenv_path=env_path, override=True)
+        # Try to get API key directly from environment first (for cloud environments like Render)
+        api_key = os.environ.get('GEMINI_API_KEY')
         
-        # Get API key and log first 5 characters for verification (don't log full key)
-        api_key = os.getenv('GEMINI_API_KEY')
+        # If not found, try loading from local .env file as fallback (for local development)
+        if not api_key:
+            env_path = os.path.join(os.path.dirname(__file__), '.env')
+            app.logger.info(f"API key not found in environment, trying to load from: {env_path}")
+            load_dotenv(dotenv_path=env_path, override=False)
+            api_key = os.environ.get('GEMINI_API_KEY')
+            
+        # Log first 5 characters of API key for verification (if found)
         if not api_key:
             app.logger.error("GEMINI_API_KEY not found in environment variables")
             return "I'm having trouble connecting to the AI service. (Error: API key not configured)"
