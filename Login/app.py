@@ -193,9 +193,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 # WebAuthn configuration
-RP_ID = 'localhost'  # Should be your domain in production
-RP_NAME = 'Secure Login App'
-ORIGIN = 'http://localhost:5001'  # Should be your full domain with protocol
+RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'localhost')  # Domain name without protocol
+RP_NAME = os.environ.get('WEBAUTHN_RP_NAME', 'Secure Login App')
+ORIGIN = os.environ.get('WEBAUTHN_ORIGIN', 'http://localhost:5001')  # Full URL with protocol
 
 # User model
 class WebAuthnCredential(db.Model):
