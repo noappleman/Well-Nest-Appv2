@@ -7,7 +7,7 @@ import requests  # Add this import for making HTTP requests
 import base64
 import google.generativeai as genai  # Import Google Generative AI
 import random  # For selecting random fallback responses
-from datetime import datetime
+from datetime import datetime, timedelta
 from threading import Thread
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
@@ -17,6 +17,8 @@ load_dotenv()  # Load environment variables from .env file
 from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify, make_response, send_from_directory, abort
 from flask_wtf.csrf import CSRFProtect
 from markupsafe import escape
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import json
 import secrets
 import string
@@ -227,6 +229,15 @@ def add_security_headers(response):
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
 
+# Initialize rate limiter
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+    strategy="fixed-window"
+)
+
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -425,6 +436,8 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    failed_login_attempts = db.Column(db.Integer, default=0)  # Track failed login attempts
+    account_locked_until = db.Column(db.DateTime, nullable=True)  # Timestamp until account is locked
     
     credentials = db.relationship('WebAuthnCredential', backref=db.backref('user_ref', lazy='joined'), lazy=True,
                                 cascade='all, delete-orphan', passive_deletes=True)
@@ -1265,6 +1278,7 @@ def register():
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('homepage'))
@@ -1287,7 +1301,19 @@ def login():
         
         # Regular user login
         user = User.query.filter_by(username=username).first()
+        
+        # Check if account is locked
+        if user and user.account_locked_until and user.account_locked_until > datetime.now():
+            remaining_time = (user.account_locked_until - datetime.now()).total_seconds() / 60
+            flash(f'Account temporarily locked due to too many failed attempts. Try again in {int(remaining_time)} minutes.', 'error')
+            log_security_event('LOGIN_BLOCKED', username, request.remote_addr, 'Account temporarily locked')
+            return redirect(url_for('login'))
+            
         if user and user.check_password(password):
+            # Reset failed login attempts on successful login
+            user.failed_login_attempts = 0
+            user.account_locked_until = None
+            db.session.commit()
             session['username_for_otp'] = user.username
             totp = pyotp.TOTP(user.otp_secret)
             otp = totp.now()
@@ -1315,6 +1341,15 @@ def login():
 
         # Log failed login attempts
         log_security_event('LOGIN_FAILED', username, request.remote_addr, 'Invalid username or password')
+        
+        # Increment failed login attempts and potentially lock account
+        if user:
+            user.failed_login_attempts += 1
+            if user.failed_login_attempts >= 5:  # Lock account after 5 failed attempts
+                user.account_locked_until = datetime.now() + timedelta(minutes=15)  # Lock for 15 minutes
+                log_security_event('ACCOUNT_LOCKED', username, request.remote_addr, f'Account locked for 15 minutes after {user.failed_login_attempts} failed attempts')
+            db.session.commit()
+            
         flash('Invalid username or password.', 'error')
     return render_template('login.html')
 
