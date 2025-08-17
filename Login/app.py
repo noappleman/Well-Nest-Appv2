@@ -90,6 +90,11 @@ app.jinja_loader = ChoiceLoader([
 app.config['JSON_AS_ASCII'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 
+# Security configurations
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'  # Only in production
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max upload size
+
 # PostgreSQL configuration
 POSTGRES_USER = os.environ.get('POSTGRES_USER', 'isaac')
 POSTGRES_PASSWORD = os.environ.get('POSTGRES_PASSWORD', '')
@@ -207,6 +212,15 @@ def log_security_event(event_type, username=None, ip_address=None, details=None)
         'details': details
     }
     security_logger.info(f"SECURITY_EVENT: {json.dumps(log_entry)}")
+
+# Security headers
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    return response
 
 # Initialize extensions
 db = SQLAlchemy(app)
