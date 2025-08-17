@@ -173,9 +173,29 @@ def sanitize_input(input_string):
 def allowed_file(filename, allowed_extensions=None):
     """Check if the file extension is allowed"""
     if allowed_extensions is None:
-        allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+        allowed_extensions = {'png', 'jpg', 'jpeg'}
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+def validate_image_mime(file_stream):
+    """Validate that the file is actually an image by checking its MIME type"""
+    try:
+        # Read the first few bytes to determine file type
+        file_stream.seek(0)
+        header = file_stream.read(8)
+        file_stream.seek(0)  # Reset file pointer
+        
+        # Check for JPEG signature (FF D8)
+        if header.startswith(b'\xFF\xD8'):
+            return 'image/jpeg'
+        # Check for PNG signature (89 50 4E 47 0D 0A 1A 0A)
+        elif header.startswith(b'\x89PNG\r\n\x1a\n'):
+            return 'image/png'
+        else:
+            return None
+    except Exception as e:
+        app.logger.error(f"Error validating image MIME type: {str(e)}")
+        return None
 
 def log_security_event(event_type, username=None, ip_address=None, details=None):
     """Log security-related events"""
@@ -1364,10 +1384,17 @@ def edit_profile():
         profile_picture_filename = None
         
         if profile_picture and profile_picture.filename:
-            # Check if file type is allowed
+            # Check if file extension is allowed
             if not allowed_file(profile_picture.filename, ['jpg', 'jpeg', 'png']):
                 flash('Only JPEG, JPG, and PNG files are allowed for profile pictures.', 'error')
-                log_security_event('PROFILE_EDIT_FAILED', current_user.username, request.remote_addr, 'Invalid profile picture format')
+                log_security_event('PROFILE_EDIT_FAILED', current_user.username, request.remote_addr, 'Invalid profile picture extension')
+                return render_template('edit_profile.html')
+                
+            # Verify the actual file content using MIME type
+            mime_type = validate_image_mime(profile_picture)
+            if mime_type not in ['image/jpeg', 'image/png']:
+                flash('The uploaded file is not a valid image. Only JPEG and PNG files are allowed.', 'error')
+                log_security_event('PROFILE_EDIT_FAILED', current_user.username, request.remote_addr, f'Invalid image content type: {mime_type}')
                 return render_template('edit_profile.html')
                 
             # Secure the filename and save the file
