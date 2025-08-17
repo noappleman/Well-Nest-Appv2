@@ -929,6 +929,10 @@ class NewsletterApp {
             const testImg = new Image();
             testImg.onload = () => {
                 img.src = article.urlToImage;
+                // Ensure consistent image dimensions
+                img.style.width = '100%';
+                img.style.height = '200px';
+                img.style.objectFit = 'cover';
             };
             testImg.onerror = () => {
                 // Fallback to a simple colored rectangle
