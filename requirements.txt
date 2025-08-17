@@ -8,6 +8,8 @@ Flask-SocketIO==5.3.6
 
 # Server
 gunicorn==21.2.0
+setuptools>=65.5.1
+wheel>=0.38.0
 
 # Authentication and security
 pyotp==2.9.0
@@ -20,7 +22,7 @@ cryptography>=43.0.3
 # WebSocket dependencies
 python-socketio==5.10.0
 python-engineio==4.8.0
-gevent==23.9.1
+gevent==22.10.2
 
 # Web related
 Werkzeug==3.1.3
