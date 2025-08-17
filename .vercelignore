@@ -1,0 +1,23 @@
+# Ignore unnecessary files for Vercel deployment
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
+.git/
+.gitignore
+.idea/
+.vscode/
+*.log
+instance/
+*.db
+*.sqlite3
