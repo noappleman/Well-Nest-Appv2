@@ -250,6 +250,15 @@ class NewsletterApp {
             
             // Extract images from the article HTML
             const imageUrl = this.extractMainImageFromHTML(htmlContent);
+            
+            // Add image resizing parameters for Straits Times images
+            if (imageUrl && imageUrl.includes('straitstimes.com')) {
+                // Add width parameter to resize the image to match our container
+                return imageUrl.includes('?') ? 
+                    `${imageUrl}&w=400&h=200&fit=crop` : 
+                    `${imageUrl}?w=400&h=200&fit=crop`;
+            }
+            
             return imageUrl;
             
         } catch (error) {
