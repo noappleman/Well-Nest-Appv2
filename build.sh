@@ -1,16 +1,23 @@
 #!/bin/bash
 
-# Create public directory if it doesn't exist
-mkdir -p public
+# Create necessary directories
+mkdir -p static
 
-# Copy static assets from Login and Chat modules
-echo "Copying static assets to public directory..."
-cp -r Login/static/* public/ 2>/dev/null || true
-cp -r Chat/static/* public/ 2>/dev/null || true
+# Copy static assets from Login and Chat modules to static directory for Flask
+echo "Copying static assets to static directory..."
+cp -r Login/static/* static/ 2>/dev/null || true
+cp -r Chat/static/* static/ 2>/dev/null || true
 
-# Copy templates as static HTML files (optional)
-mkdir -p public/templates
-cp -r Login/templates/* public/templates/ 2>/dev/null || true
-cp -r Chat/templates/* public/templates/ 2>/dev/null || true
+# Install Python dependencies
+echo "Installing Python dependencies..."
+pip install -r requirements.txt
 
-echo "Build completed. Files are in the public directory."
+# Set up environment variables if .env file exists
+if [ -f .env ]; then
+    echo "Loading environment variables from .env file..."
+    set -a
+    source .env
+    set +a
+fi
+
+echo "Build completed. Ready for Render deployment."

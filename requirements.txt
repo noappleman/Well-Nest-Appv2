@@ -6,6 +6,9 @@ Flask-WTF==1.2.1
 Flask-Mailman==0.3.0
 Flask-SocketIO==5.3.6
 
+# Server
+gunicorn==21.2.0
+
 # Authentication and security
 pyotp==2.9.0
 passlib==1.7.4
