@@ -20,7 +20,7 @@ cryptography>=43.0.3
 # WebSocket dependencies
 python-socketio==5.10.0
 python-engineio==4.8.0
-eventlet==0.33.3
+gevent==23.9.1
 
 # Web related
 Werkzeug==3.1.3
