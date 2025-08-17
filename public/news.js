@@ -459,14 +459,24 @@ class NewsletterApp {
             if (updates.title) {
                 const titleElement = card.querySelector('.news-title');
                 if (titleElement) {
+                    // Preserve layout by maintaining max height
+                    const currentHeight = titleElement.offsetHeight;
                     titleElement.textContent = updates.title;
+                    // Ensure we don't expand beyond original dimensions
+                    titleElement.style.maxHeight = `${currentHeight}px`;
+                    titleElement.style.overflow = 'hidden';
                 }
             }
             
             if (updates.description) {
                 const descElement = card.querySelector('.news-description');
                 if (descElement) {
+                    // Preserve layout by maintaining max height
+                    const currentHeight = descElement.offsetHeight;
                     descElement.textContent = updates.description;
+                    // Ensure we don't expand beyond original dimensions
+                    descElement.style.maxHeight = `${currentHeight}px`;
+                    descElement.style.overflow = 'hidden';
                 }
             }
         }
