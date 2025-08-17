@@ -239,12 +239,12 @@ def add_security_headers(response):
         # Define CSP policy with nonce for inline scripts
         csp_policy = (
             f"default-src 'self'; "
-            f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com; "
+            f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; "
             f"style-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
             f"img-src 'self' data: blob:; "
             f"font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
             f"connect-src 'self'; "
-            f"frame-src 'self'; "
+            f"frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; "
             f"object-src 'none'; "
             f"base-uri 'self'; "
             f"form-action 'self'; "
