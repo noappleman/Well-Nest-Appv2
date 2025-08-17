@@ -1130,9 +1130,21 @@ def submit_health_metrics():
         weight = request.form.get('weight', type=float)
         heart_rate = request.form.get('heartRate', type=int)
         
-        # Validate required input
-        if not all([systolic, diastolic, blood_sugar]):
-            flash('Blood pressure and blood sugar fields are required', 'danger')
+        # Get the most recent health metric for this user
+        last_metric = HealthMetric.query.filter_by(user_id=current_user.id).order_by(HealthMetric.created_at.desc()).first()
+        
+        # Use previous values for any fields not provided
+        if last_metric:
+            systolic = systolic if systolic is not None else last_metric.systolic
+            diastolic = diastolic if diastolic is not None else last_metric.diastolic
+            blood_sugar = blood_sugar if blood_sugar is not None else last_metric.blood_sugar
+            height = height if height is not None else last_metric.height
+            weight = weight if weight is not None else last_metric.weight
+            heart_rate = heart_rate if heart_rate is not None else last_metric.heart_rate
+        
+        # Validate that at least one field is provided
+        if not any([systolic, diastolic, blood_sugar, height, weight, heart_rate]):
+            flash('Please provide at least one health metric', 'danger')
             return redirect(url_for('health_dashboard'))
         
         # Create new health metric
