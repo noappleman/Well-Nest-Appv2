@@ -2649,8 +2649,8 @@ def generate_ai_response(message, username):
             # If API test passed, try using the SDK
             genai.configure(api_key=api_key)
             
-            # Use a model with better compatibility and reliability
-            model_name = 'gemini-pro'
+            # Use the Flash model for faster responses
+            model_name = 'gemini-1.5-flash'
             app.logger.info(f"Using model: {model_name}")
             
             # Initialize the model with a timeout
