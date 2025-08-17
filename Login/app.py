@@ -342,6 +342,11 @@ def protected_js(filename):
     response = send_from_directory(os.path.join(app.root_path, 'protected_assets'), filename)
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response.headers['Pragma'] = 'no-cache'
+    
+    # Add CSP nonce to JavaScript files
+    if filename.endswith('.js'):
+        nonce = session.get('csp_nonce', generate_nonce())
+        response.headers['Content-Security-Policy'] = f"script-src 'self' 'nonce-{nonce}'"
     response.headers['Expires'] = '0'
     return response
 
