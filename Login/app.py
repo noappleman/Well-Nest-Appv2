@@ -1057,7 +1057,7 @@ def event_add():
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     filename = f"{timestamp}_{filename}"
                     # Save file
-                    image_path = os.path.join('static/images/events', filename)
+                    image_path = os.path.join(app.root_path, 'static', 'images', 'events', filename)
                     image.save(image_path)
                     new_event.image_path = f"images/events/{filename}"
             
@@ -1146,7 +1146,7 @@ def event_edit(event_id):
                     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                     filename = f"{timestamp}_{filename}"
                     # Save file
-                    image_path = os.path.join('static/images/events', filename)
+                    image_path = os.path.join(app.root_path, 'static', 'images', 'events', filename)
                     image.save(image_path)
                     event.image_path = f"images/events/{filename}"
             
