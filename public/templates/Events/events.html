@@ -4,7 +4,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('protected_css', filename='events.css') }}">
-<style>
+<style nonce="{{ csp_nonce }}">
     .event-actions {
         display: flex;
         gap: 10px;
@@ -55,7 +55,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
     // Fetch events from API endpoint
     async function fetchEvents() {
         try {

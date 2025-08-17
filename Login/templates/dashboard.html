@@ -9,7 +9,7 @@
     {% if current_user.credentials %}
         <ul style="list-style-type: none; padding: 0;">
         {% for cred in current_user.credentials %}
-            <li style="background-color: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #28a745;">
+            <li style="background-color: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #28a745;" nonce="{{ csp_nonce }}">
                 <strong>🔐 Authenticator {{ loop.index }}</strong><br>
                 <small style="color: #6c757d;">
                     Registered: Touch ID/Face ID/Security Key<br>

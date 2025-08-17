@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{{ url_for('protected_css', filename='style.css') }}">
     {% endif %}
 
-    <style>
+    <style nonce="{{ csp_nonce }}">
         /* Ensure navbar dropdown is always clickable */
         .navbar {
             position: fixed !important;
@@ -256,7 +256,7 @@
         <i class="bi bi-chat-dots"></i>
     </a>
     
-    <style>
+    <style nonce="{{ csp_nonce }}">
         .floating-chat-icon {
             position: fixed;
             bottom: 30px;
@@ -296,7 +296,7 @@
     {% if current_user.is_authenticated %}<!-- Load WebAuthn script securely -->    
     <script src="{{ url_for('protected_js', filename='webauthn.js') }}"></script>
     {% endif %}
-    <script>
+    <script nonce="{{ csp_nonce }}">
     // Handle footer feedback form submission
     document.addEventListener('DOMContentLoaded', function() {
         const footerForm = document.getElementById('footerFeedbackForm');

@@ -3,7 +3,7 @@
 {% block title %}Health Dashboard - WellNest{% endblock %}
 
 {% block styles %}
-<style>
+<style nonce="{{ csp_nonce }}">
     :root {
         --primary-red: #dc3545;
         --primary-light: #ffebee;
@@ -318,7 +318,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('healthMetricsForm');
         

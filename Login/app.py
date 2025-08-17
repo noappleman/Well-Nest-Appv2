@@ -7,12 +7,14 @@ import requests  # Add this import for making HTTP requests
 import base64
 import google.generativeai as genai  # Import Google Generative AI
 import random  # For selecting random fallback responses
+import secrets  # For generating secure nonces
 from datetime import datetime, timedelta
 from threading import Thread
 from flask import send_from_directory  # Add this import for making HTTP requests
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from cryptography.fernet import Fernet
+from functools import wraps  # For creating decorators
 
 load_dotenv()  # Load environment variables from .env file
 from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify, make_response, send_from_directory, abort
@@ -216,18 +218,52 @@ def log_security_event(event_type, username=None, ip_address=None, details=None)
     }
     security_logger.info(f"SECURITY_EVENT: {json.dumps(log_entry)}")
 
-# Security headers
+# Generate a secure nonce for CSP
+def generate_nonce():
+    return secrets.token_urlsafe(32)
+
+# Add CSP nonce to template context
+@app.context_processor
+def inject_csp_nonce():
+    nonce = generate_nonce()
+    session['csp_nonce'] = nonce
+    return {'csp_nonce': nonce}
+
+# Security headers with CSP
 @app.after_request
 def add_security_headers(response):
     # Only add security headers for HTML responses to avoid API issues
     if response.mimetype == 'text/html':
+        nonce = session.get('csp_nonce', generate_nonce())
+        
+        # Define CSP policy with nonce for inline scripts
+        csp_policy = (
+            f"default-src 'self'; "
+            f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com; "
+            f"style-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
+            f"img-src 'self' data: blob:; "
+            f"font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
+            f"connect-src 'self'; "
+            f"frame-src 'self'; "
+            f"object-src 'none'; "
+            f"base-uri 'self'; "
+            f"form-action 'self'; "
+        )
+        
+        # Add CSP header
+        response.headers['Content-Security-Policy'] = csp_policy
+        
+        # Add other security headers
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
         
         # Only add HSTS header in production and for HTTPS requests
         if os.environ.get('FLASK_ENV') == 'production' and request.is_secure:
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
     return response
 
 # Initialize rate limiter
@@ -2941,4 +2977,6 @@ def list_routes():
 if __name__ == '__main__':
     # For better WebAuthn support, try HTTPS
     # socketio.run(app, debug=True, ssl_context='adhoc', port=5001)  # Uncomment for HTTPS
-    socketio.run(app, debug=True, port=5001)
+    # socketio.run(app, debug=True, port=5001)
+    # Temporarily use Flask's built-in server to test CSP nonce implementation
+    app.run(debug=True, port=5001)
