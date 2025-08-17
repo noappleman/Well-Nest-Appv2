@@ -5,6 +5,8 @@ import re
 import logging
 import requests  # Add this import for making HTTP requests
 import base64
+import google.generativeai as genai  # Import Google Generative AI
+import random  # For selecting random fallback responses
 from datetime import datetime
 from threading import Thread
 from dotenv import load_dotenv
@@ -2595,14 +2597,11 @@ def generate_ai_response(message, username):
     ]
     
     # Select a random fallback response
-    import random
     fallback_response = random.choice(FALLBACK_RESPONSES)
     
     try:
-        import google.generativeai as genai
-        import os
+        # These imports are now at the top of the file
         import socket
-        import requests
         from dotenv import load_dotenv
         import time
         
