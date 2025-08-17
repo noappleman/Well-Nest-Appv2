@@ -116,11 +116,17 @@ app.config['MAIL_USERNAME'] = 'wellnest51@gmail.com'
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', '')  # Get from environment variable
 
 # Security Logging Configuration
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '')
+log_file = os.path.join(log_dir, 'security.log')
+
+# Ensure log directory exists
+os.makedirs(log_dir, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('security.log'),
+        logging.FileHandler(log_file),
         logging.StreamHandler()
     ]
 )
@@ -1622,9 +1628,23 @@ def admin_security_logs():
     per_page = 20  # Number of logs per page
     
     try:
-        # Read security log file
-        log_file = os.path.join(app.root_path, 'security.log')
+        # Read security log file using the same path as defined in the logging setup
+        log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'security.log')
+        app.logger.info(f"Looking for security log at: {log_file}")
+        
+        # Create a test log entry if the file doesn't exist or is empty
+        if not os.path.exists(log_file) or os.path.getsize(log_file) == 0:
+            # Create a test security log entry
+            log_security_event(
+                event_type='ADMIN_SECURITY_LOG_VIEW',
+                username='admin',
+                ip_address=request.remote_addr,
+                details='Initial security log view - test entry'
+            )
+            app.logger.info(f"Created test security log entry at {log_file}")
+            
         if not os.path.exists(log_file):
+            flash(f'Security log file not found at {log_file}', 'warning')
             return render_template('admin_security_logs.html', logs=[], page=1, total_pages=1, event_types=[], selected_type='')
             
         with open(log_file, 'r') as f:
