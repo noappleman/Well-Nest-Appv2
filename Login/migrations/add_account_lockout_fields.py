@@ -1,20 +1,23 @@
 """
 Migration script to add account lockout fields to the users table
 """
-from sqlalchemy import Column, Integer, DateTime
-from alembic import op
-import sqlalchemy as sa
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+import os
 
-def upgrade():
-    # Add failed_login_attempts column with default value 0
-    op.add_column('users', sa.Column('failed_login_attempts', sa.Integer(), nullable=True))
-    op.execute('UPDATE users SET failed_login_attempts = 0 WHERE failed_login_attempts IS NULL')
-    op.alter_column('users', 'failed_login_attempts', nullable=False, server_default='0')
-    
-    # Add account_locked_until column
-    op.add_column('users', sa.Column('account_locked_until', sa.DateTime(), nullable=True))
+# Create a minimal Flask app for migration
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///app.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-def downgrade():
-    # Remove the columns if needed
-    op.drop_column('users', 'failed_login_attempts')
-    op.drop_column('users', 'account_locked_until')
+def run_migration():
+    # Execute raw SQL to add columns if they don't exist
+    with app.app_context():
+        db.session.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0')
+        db.session.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS account_locked_until TIMESTAMP')
+        db.session.commit()
+        print('Migration completed successfully')
+
+if __name__ == '__main__':
+    run_migration()
