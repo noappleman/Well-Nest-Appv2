@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+
+{% block title %}Private Chat{% endblock %}
+
+{% block content %}
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            padding-top: 56px; /* Add padding for fixed navbar */
+        }
+        
+        /* Remove conflicting navbar styles - let base.css handle it */
+        .chat-container {
+            position: relative;
+            height: calc(100vh - 56px);
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            z-index: 1;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-container {
+            position: relative;
+            height: calc(100vh - 56px);
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            z-index: 1;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .chat-header {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .welcome-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .welcome-message {
+            text-align: center;
+            max-width: 500px;
+        }
+        .welcome-message h3 {
+            margin-bottom: 20px;
+            color: #4a6fa5;
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .search-container {
+            padding: 10px 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            outline: none;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab.active {
+            border-bottom: 2px solid #4a6fa5;
+            font-weight: bold;
+            color: #4a6fa5;
+        }
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .contacts-list, .requests-list, .search-results {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .contact-item, .request-item, .search-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .contact-item:hover, .search-item:hover {
+            background-color: #e9ecef;
+        }
+        .contact-item.active {
+            background-color: #e9ecef;
+        }
+        .contact-info {
+            display: flex;
+            align-items: center;
+        }
+        .online-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .online {
+            background-color: #28a745;
+        }
+        .offline {
+            background-color: #dc3545;
+        }
+        .contact-name {
+            font-weight: 500;
+        }
+        .request-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-accept, .btn-reject, .btn-request {
+            padding: 3px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+        }
+        .btn-accept {
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        .btn-reject {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+        .btn-request {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+        }
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background-color: #6c757d;
+            color: white;
+        }
+        .status-pending {
+            background-color: #ffc107;
+        }
+        .status-accepted {
+            background-color: #28a745;
+        }
+        .status-rejected {
+            background-color: #dc3545;
+        }
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div>
+                <span class="room-name">Private Chat</span>
+                <small class="ms-2 text-light">as @{{ username }}</small>
+            </div>
+            <a href="/dashboard" class="leave-btn" title="Back to Dashboard">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </div>
+        
+        <div class="chat-body">
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h6 class="mb-0">Messages</h6>
+                </div>
+                
+                <div class="search-container">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search users..." autocomplete="off">
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" id="contactsTab">Contacts</div>
+                    <div class="tab" id="requestsTab">Requests 
+                        {% if pending_requests %}
+                        <span class="badge bg-danger">{{ pending_requests|length }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="tab-content">
+                    <div id="contactsContent" class="content-pane">
+                        <ul class="contacts-list">
+                            {% if contacts %}
+                                {% for contact in contacts %}
+                                <li class="contact-item" data-user-id="{{ contact.user_id }}">
+                                    <div class="contact-info">
+                                        <span class="online-indicator offline" data-user-id="{{ contact.user_id }}"></span>
+                                        <span class="contact-name">{{ contact.username }}</span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="p-3 text-center text-muted">No contacts yet</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div id="requestsContent" class="content-pane" style="display: none;">
+                        <ul class="requests-list">
+                            {% if pending_requests %}
+                                {% for request in pending_requests %}
+                                <li class="request-item" data-request-id="{{ request.id }}">
+                                    <span class="contact-name">{{ request.sender.username }}</span>
+                                    <div class="request-actions">
+                                        <button class="btn-accept" data-request-id="{{ request.id }}">Accept</button>
+                                        <button class="btn-reject" data-request-id="{{ request.id }}">Reject</button>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            {% else %}
+                                <li class="p-3 text-center text-muted">No pending requests</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div id="searchContent" class="content-pane" style="display: none;">
+                        <ul class="search-results">
+                            <!-- Search results will be populated here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="welcome-container" id="welcomeContainer">
+                <div class="welcome-message">
+                    <h3>Welcome to Private Chat</h3>
+                    <p>Select a contact from the sidebar to start chatting or search for new users to connect with.</p>
+                    <p>You can also check your pending requests in the Requests tab.</p>
+                </div>
+            </div>
+                <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+                <button type="submit">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Manually initialize dropdowns to ensure they work
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all dropdowns
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+        });
+    </script>
+    <script>
+        // DOM elements
+        const searchInput = document.getElementById('searchInput');
+        const contactsTab = document.getElementById('contactsTab');
+        const requestsTab = document.getElementById('requestsTab');
+        const contactsContent = document.getElementById('contactsContent');
+        const requestsContent = document.getElementById('requestsContent');
+        const searchContent = document.getElementById('searchContent');
+        const searchResults = document.querySelector('.search-results');
+        const welcomeContainer = document.getElementById('welcomeContainer');
+        
+        // User data
+        const username = '{{ username }}';
+        const csrfToken = '{{ csrf_token() }}';
+        
+        // Connect to Socket.IO server
+        const socket = io();
+        
+        // Notify server that user is online
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            socket.emit('user_online', {});
+        });
+        
+        // Handle status messages
+        socket.on('status', (data) => {
+            console.log(data.message);
+        });
+        
+        // Handle online status updates
+        socket.on('user_online', (data) => {
+            const indicators = document.querySelectorAll(`.online-indicator[data-user-id="${data.user_id}"]`);
+            indicators.forEach(indicator => {
+                indicator.classList.remove('offline');
+                indicator.classList.add('online');
+            });
+        });
+        
+        // Handle offline status updates
+        socket.on('user_offline', (data) => {
+            const indicators = document.querySelectorAll(`.online-indicator[data-user-id="${data.user_id}"]`);
+            indicators.forEach(indicator => {
+                indicator.classList.remove('online');
+                indicator.classList.add('offline');
+            });
+        });
+        
+        // Handle new message notifications
+        socket.on('new_message_notification', (data) => {
+            // Create notification
+            const notification = document.createElement('div');
+            notification.className = 'toast show';
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.right = '20px';
+            notification.style.backgroundColor = 'white';
+            notification.style.boxShadow = '0 0 10px rgba(0,0,0,0.1)';
+            notification.style.padding = '10px';
+            notification.style.borderRadius = '5px';
+            notification.style.zIndex = '1000';
+            
+            notification.innerHTML = `
+                <div class="toast-header">
+                    <strong class="me-auto">New message from ${data.from_username}</strong>
+                    <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+                <div class="toast-body">
+                    ${data.message_preview}
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 5 seconds
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        });
+        
+        // Check online status of contacts
+        function checkOnlineStatus() {
+            const contactItems = document.querySelectorAll('.contact-item');
+            if (contactItems.length === 0) return;
+            
+            const userIds = Array.from(contactItems).map(item => item.dataset.userId);
+            socket.emit('get_online_status', { user_ids: userIds });
+        }
+        
+        // Handle online status response
+        socket.on('online_status', (data) => {
+            const statuses = data.statuses;
+            for (const userId in statuses) {
+                const indicators = document.querySelectorAll(`.online-indicator[data-user-id="${userId}"]`);
+                indicators.forEach(indicator => {
+                    if (statuses[userId]) {
+                        indicator.classList.remove('offline');
+                        indicator.classList.add('online');
+                    } else {
+                        indicator.classList.remove('online');
+                        indicator.classList.add('offline');
+                    }
+                });
+            }
+        });
+        
+        // Tab switching
+        contactsTab.addEventListener('click', () => {
+            contactsTab.classList.add('active');
+            requestsTab.classList.remove('active');
+            contactsContent.style.display = 'block';
+            requestsContent.style.display = 'none';
+            searchContent.style.display = 'none';
+        });
+        
+        requestsTab.addEventListener('click', () => {
+            requestsTab.classList.add('active');
+            contactsTab.classList.remove('active');
+            requestsContent.style.display = 'block';
+            contactsContent.style.display = 'none';
+            searchContent.style.display = 'none';
+        });
+        
+        // User search
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.trim();
+            
+            if (searchTerm.length >= 3) {
+                // Show search content
+                contactsContent.style.display = 'none';
+                requestsContent.style.display = 'none';
+                searchContent.style.display = 'block';
+                contactsTab.classList.remove('active');
+                requestsTab.classList.remove('active');
+                
+                // Search for users
+                fetch('/chat/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: `search_term=${encodeURIComponent(searchTerm)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    searchResults.innerHTML = '';
+                    
+                    if (data.users && data.users.length > 0) {
+                        data.users.forEach(user => {
+                            const li = document.createElement('li');
+                            li.className = 'search-item';
+                            
+                            let statusBadge = '';
+                            let actionButton = `<button class="btn-request" data-user-id="${user.id}">Send Request</button>`;
+                            
+                            if (user.status) {
+                                if (user.status === 'pending') {
+                                    statusBadge = '<span class="status-badge status-pending">Pending</span>';
+                                    actionButton = '';
+                                } else if (user.status === 'accepted') {
+                                    statusBadge = '<span class="status-badge status-accepted">Contact</span>';
+                                    actionButton = `<a href="/chat/${user.id}" class="btn-request">Chat</a>`;
+                                } else if (user.status === 'rejected') {
+                                    statusBadge = '<span class="status-badge status-rejected">Rejected</span>';
+                                    actionButton = '';
+                                }
+                            }
+                            
+                            li.innerHTML = `
+                                <div class="contact-info">
+                                    <span class="contact-name">${user.username}</span>
+                                    ${statusBadge}
+                                </div>
+                                <div class="request-actions">
+                                    ${actionButton}
+                                </div>
+                            `;
+                            
+                            searchResults.appendChild(li);
+                        });
+                        
+                        // Add event listeners to request buttons
+                        document.querySelectorAll('.btn-request').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                if (!this.dataset.userId) return;
+                                
+                                e.preventDefault();
+                                sendChatRequest(this.dataset.userId);
+                            });
+                        });
+                    } else {
+                        searchResults.innerHTML = '<li class="p-3 text-center text-muted">No users found</li>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error searching users:', error);
+                    searchResults.innerHTML = '<li class="p-3 text-center text-danger">Error searching users</li>';
+                });
+            } else if (searchTerm.length === 0) {
+                // Show contacts content
+                contactsContent.style.display = 'block';
+                searchContent.style.display = 'none';
+                requestsContent.style.display = 'none';
+                contactsTab.classList.add('active');
+                requestsTab.classList.remove('active');
+            }
+        });
+        
+        // Send chat request
+        function sendChatRequest(receiverId) {
+            fetch('/chat/request', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `receiver_id=${receiverId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI to show pending
+                    const requestBtn = document.querySelector(`.btn-request[data-user-id="${receiverId}"]`);
+                    if (requestBtn) {
+                        const parentDiv = requestBtn.parentElement;
+                        requestBtn.remove();
+                        
+                        // Add pending badge to user
+                        const userInfo = parentDiv.previousElementSibling;
+                        if (userInfo) {
+                            const statusBadge = document.createElement('span');
+                            statusBadge.className = 'status-badge status-pending';
+                            statusBadge.textContent = 'Pending';
+                            userInfo.appendChild(statusBadge);
+                        }
+                    }
+                    
+                    // Show success message
+                    alert(data.message);
+                } else {
+                    alert(data.error || 'Failed to send request');
+                }
+            })
+            .catch(error => {
+                console.error('Error sending chat request:', error);
+                alert('Error sending chat request');
+            });
+        }
+        
+        // Handle chat request acceptance/rejection
+        document.querySelectorAll('.btn-accept, .btn-reject').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const requestId = this.dataset.requestId;
+                const action = this.classList.contains('btn-accept') ? 'accept' : 'reject';
+                
+                fetch(`/chat/request/${requestId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: `action=${action}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove request from list
+                        const requestItem = document.querySelector(`.request-item[data-request-id="${requestId}"]`);
+                        if (requestItem) {
+                            requestItem.remove();
+                        }
+                        
+                        // Update requests count
+                        const pendingRequests = document.querySelectorAll('.request-item').length;
+                        if (pendingRequests === 0) {
+                            document.querySelector('.requests-list').innerHTML = 
+                                '<li class="p-3 text-center text-muted">No pending requests</li>';
+                            
+                            // Remove badge from requests tab
+                            const badge = requestsTab.querySelector('.badge');
+                            if (badge) badge.remove();
+                        } else {
+                            // Update badge count
+                            const badge = requestsTab.querySelector('.badge');
+                            if (badge) badge.textContent = pendingRequests;
+                        }
+                        
+                        // If accepted, refresh the page to show new contact
+                        if (action === 'accept') {
+                            window.location.reload();
+                        }
+                    } else {
+                        alert(data.error || `Failed to ${action} request`);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error ${action}ing chat request:`, error);
+                    alert(`Error ${action}ing chat request`);
+                });
+            });
+        });
+        
+        // Handle contact clicks
+        document.querySelectorAll('.contact-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                window.location.href = `/chat/${userId}`;
+            });
+        });
+        
+        // Check online status on page load
+        checkOnlineStatus();
+        
+        // Check online status periodically
+        setInterval(checkOnlineStatus, 30000); // every 30 seconds
+    </script>
+{% endblock %}

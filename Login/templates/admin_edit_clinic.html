@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}WellNest - Edit Clinic{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Edit Clinic</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_edit_clinic', clinic_id=clinic.id) }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Clinic Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ clinic.name }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="specialties" class="form-label">Specialties</label>
+                            <input type="text" class="form-control" id="specialties" name="specialties" 
+                                   value="{{ clinic.specialties }}" placeholder="e.g., General Practice, Cardiology, Pediatrics">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="location" class="form-label">Location <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="location" name="location" value="{{ clinic.location }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="contact" class="form-label">Contact Number <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="contact" name="contact" value="{{ clinic.contact }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="opening_hours" class="form-label">Opening Hours <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="opening_hours" name="opening_hours" 
+                                   value="{{ clinic.opening_hours }}" placeholder="e.g., Mon-Fri: 9:00 AM - 5:00 PM" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ clinic.description }}</textarea>
+                        </div>
+                        
+                        {% if clinic.image_path %}
+                        <div class="mb-3">
+                            <label class="form-label">Current Image</label>
+                            <div class="mb-2">
+                                <img src="{{ url_for('static', filename=clinic.image_path) }}" alt="{{ clinic.name }}" class="img-thumbnail" style="max-height: 150px;">
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="clinic_image" class="form-label">Update Clinic Image</label>
+                            <input type="file" class="form-control" id="clinic_image" name="clinic_image" accept="image/*">
+                            <div class="form-text">Upload a new image (leave empty to keep current image)</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('admin_clinics') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Clinic</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

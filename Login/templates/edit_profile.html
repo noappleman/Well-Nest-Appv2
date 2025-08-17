@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-wellnest text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-gear me-2"></i>Edit Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('edit_profile') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/jpeg,image/png,image/jpg">
+                            <div class="form-text">Only JPEG, PNG, and JPG formats are allowed. Max size: 2MB.</div>
+                            {% if current_user.profile_picture %}
+                            <div class="mt-2">
+                                <img src="{{ url_for('static', filename='uploads/' + current_user.profile_picture) }}" alt="Current profile picture" class="img-thumbnail" style="max-width: 100px;">
+                                <p class="small text-muted">Current profile picture</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password (leave blank to keep current)</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                            <div class="form-text">Password must be at least 8 characters with uppercase, lowercase, and numbers.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        </div>
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password (required to save changes)</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('homepage') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-wellnest">Save Changes</button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    <h5 class="mb-3"><i class="bi bi-shield-lock me-2"></i>Security Authenticators</h5>
+                    
+                    <div id="webauthn-credentials">
+                        {% if current_user.credentials %}
+                            <ul class="list-group mb-3">
+                            {% for cred in current_user.credentials %}
+                                <li class="list-group-item border-start border-success border-4">
+                                    <strong>🔐 Authenticator {{ loop.index }}</strong><br>
+                                    <small class="text-muted">
+                                        Registered: Touch ID/Face ID/Security Key<br>
+                                        Status: Active
+                                        {% if cred.transports %}
+                                            <br>Type: {{ cred.transports.replace(',', ', ').title() }}
+                                        {% endif %}
+                                    </small>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                            <p class="text-muted small">
+                                <em>You have {{ current_user.credentials|length }} authenticator(s) registered for secure login.</em>
+                            </p>
+                        {% else %}
+                            <div class="alert alert-warning border-start border-warning border-4">
+                                <strong>⚠️ No authenticators registered yet.</strong><br>
+                                <small>Register a Touch ID, Face ID, or security key for faster and more secure login.</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button id="register-webauthn" class="btn btn-outline-wellnest"><i class="bi bi-plus-circle me-2"></i>Register New Authenticator</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

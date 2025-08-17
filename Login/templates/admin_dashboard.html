@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+<p>Welcome, Administrator!</p>
+<hr>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('admin_logout') }}" class="btn btn-secondary">Admin Logout</a>
+    <a href="{{ url_for('admin_events') }}" class="btn btn-danger">Manage Events</a>
+    <a href="{{ url_for('admin_clinics') }}" class="btn btn-primary">Manage Clinics</a>
+    <a href="{{ url_for('admin_security_logs') }}" class="btn btn-info text-white">Security Logs</a>
+</div>
+
+<h3>User Management</h3>
+<div class="user-management">
+    {% if users %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+                <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                    <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">ID</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Username</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Email</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">WebAuthn Credentials</th>
+                    <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 12px; border: 1px solid #ddd;">{{ user.id }}</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">{{ user.username }}</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">{{ user.email }}</td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">
+                        {% if user.credentials %}
+                            {{ user.credentials|length }} credential(s)
+                        {% else %}
+                            No credentials
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #ddd;">
+                        <a href="{{ url_for('admin_edit_user', user_id=user.id) }}" 
+                           style="background-color: #007bff; color: white; padding: 5px 10px; text-decoration: none; border-radius: 3px; margin-right: 5px;">
+                            Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('admin_delete_user', user_id=user.id) }}" 
+                              style="display: inline;" 
+                              onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}? This action cannot be undone.');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" 
+                                    style="background-color: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer;">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No users found in the system.</p>
+    {% endif %}
+</div>
+
+<style>
+.btn {
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    display: inline-block;
+    margin: 5px;
+}
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+.btn:hover {
+    opacity: 0.8;
+}
+table button:hover {
+    opacity: 0.8;
+}
+</style>
+{% endblock %}

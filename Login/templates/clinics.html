@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}WellNest - Find Clinics{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold text-primary mb-4">
+                <i class="bi bi-hospital me-2"></i>Find Healthcare Providers
+            </h1>
+            <p class="lead">Locate trusted healthcare providers and clinics near you</p>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 g-4 mt-2">
+        {% if clinics %}
+            {% for clinic in clinics %}
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm">
+                        {% if clinic.image_path %}
+                            <img src="{{ url_for('static', filename=clinic.image_path) }}" class="card-img-top clinic-img" alt="{{ clinic.name }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                                    <i class="bi bi-hospital text-primary" style="font-size: 2rem;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-0">{{ clinic.name }}</h5>
+                                    <p class="text-muted mb-0">{{ clinic.specialties or 'General Practice' }}</p>
+                                </div>
+                            </div>
+                            <p class="card-text">
+                                <i class="bi bi-geo-alt-fill text-danger me-2"></i>{{ clinic.location }}<br>
+                                <i class="bi bi-telephone-fill text-success me-2"></i>{{ clinic.contact }}<br>
+                                <i class="bi bi-clock-fill text-info me-2"></i>{{ clinic.opening_hours }}
+                            </p>
+                            {% if clinic.description %}
+                                <p class="card-text">{{ clinic.description }}</p>
+                            {% endif %}
+                            <a href="https://maps.google.com/?q={{ clinic.location }}" target="_blank" class="btn btn-outline-primary btn-sm">View on Map</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i> No clinics available at the moment. Please check back later.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Need help finding a specialist?</h5>
+                    <p class="card-text">
+                        Our AI Companion can help you find the right healthcare provider based on your needs.
+                        Get personalized recommendations and book appointments directly through our platform.
+                    </p>
+                    <a href="{{ url_for('chatbot') }}" class="btn btn-primary">
+                        <i class="bi bi-robot me-2"></i>Ask Our AI Assistant
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

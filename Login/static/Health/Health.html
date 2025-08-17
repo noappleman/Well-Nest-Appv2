@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Dashboard - WellNest</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-red: #dc3545;
+            --primary-light: #ffebee;
+            --primary-dark: #b71c1c;
+        }
+        
+        body {
+            background-color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        
+        .navbar {
+            background-color: var(--primary-red) !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        
+        .nav-link:hover, .nav-link:focus {
+            color: var(--primary-light) !important;
+        }
+        
+        .health-header {
+            background: linear-gradient(135deg, var(--primary-red), var(--primary-dark));
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            border: 1px solid #f5f5f5;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+            background-color: white;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-red);
+        }
+        
+        .section-title {
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-red);
+            border-color: var(--primary-red);
+        }
+        
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        
+        .text-primary {
+            color: var(--primary-red) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Include Navbar -->
+    {% extends "base.html" %}
+    
+    {% block content %}
+    <!-- Health Dashboard Header -->
+    <header class="health-header text-center">
+        <div class="container">
+            <h1><i class="bi bi-heart-pulse-fill me-2"></i> Health Dashboard</h1>
+            <p class="lead">Track and manage your health metrics</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Quick Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="card-icon">
+                            <i class="bi bi-heart-pulse"></i>
+                        </div>
+                        <h5>Heart Rate</h5>
+                        <h3 class="text-primary">72 <small class="text-muted">bpm</small></h3>
+                        <p class="text-muted">Resting</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="card-icon">
+                            <i class="bi bi-activity"></i>
+                        </div>
+                        <h5>Steps</h5>
+                        <h3 class="text-primary">8,542</h3>
+                        <p class="text-muted">Today</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="card-icon">
+                            <i class="bi bi-moon-stars"></i>
+                        </div>
+                        <h5>Sleep</h5>
+                        <h3 class="text-primary">7.5 <small class="text-muted">hrs</small></h3>
+                        <p class="text-muted">Last Night</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <div class="card-icon">
+                            <i class="bi bi-droplet"></i>
+                        </div>
+                        <h5>Water</h5>
+                        <h3 class="text-primary">5 <small class="text-muted">glasses</small></h3>
+                        <p class="text-muted">Today</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Sections -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="section-title"><i class="bi bi-graph-up me-2"></i>Activity</h4>
+                        <div class="text-center py-4">
+                            <img src="https://via.placeholder.com/500x200?text=Activity+Chart" alt="Activity Chart" class="img-fluid rounded">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary">View Full Report</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="section-title"><i class="bi bi-moon-stars me-2"></i>Sleep</h4>
+                        <div class="text-center py-4">
+                            <img src="https://via.placeholder.com/500x200?text=Sleep+Chart" alt="Sleep Chart" class="img-fluid rounded">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary">View Sleep Analysis</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

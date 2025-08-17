@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Wellnest - Home{% endblock %}
+
+{% block content %}
+<!-- Daily Check-in Section -->
+<div class="container py-5">
+    <div class="card shadow">
+        <div class="card-body p-4">
+            <h2 class="text-center mb-4">Daily Check-in</h2>
+            <p class="text-center mb-4">How are you feeling today?</p>
+            
+            <div class="d-flex justify-content-center mb-4" id="ratingContainer">
+                {% for i in range(1, 6) %}
+                <button type="button" class="btn btn-outline-secondary mx-1 rating-btn" 
+                        data-rating="{{ i }}" 
+                        style="font-size: 2rem; width: 60px; height: 60px; border-radius: 50%;">
+                    {{ i }}
+                </button>
+                {% endfor %}
+            </div>
+            
+            <div id="feedbackSection" class="d-none">
+                <div class="text-center mb-3">
+                    <h4 id="ratingResponse"></h4>
+                </div>
+                <form id="feedbackForm" class="d-none">
+                    <div class="mb-3">
+                        <label for="feedbackText" class="form-label">We're sorry to hear that. Would you like to share what's on your mind?</label>
+                        <textarea class="form-control" id="feedbackText" rows="3" required></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-danger">Submit Feedback</button>
+                    </div>
+                </form>
+                <div id="thankYouMessage" class="text-center d-none">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill"></i> Thank you for your feedback. We'll be in touch soon!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold">Welcome to Wellnest</h1>
+                <p class="lead">Your trusted healthcare companion for a healthier life.</p>
+                <p>We're here to provide you with personalized healthcare solutions and support your wellbeing journey.</p>
+                <a href="#features" class="btn btn-light btn-lg mt-3">Explore Features</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="bi bi-heart-pulse text-white" style="font-size: 8rem;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5" id="features">
+    <h2 class="text-center mb-5">Our Services</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 feature-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-heart-pulse text-wellnest mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="card-title">Health Monitoring</h5>
+                    <p class="card-text">Track your health metrics and get personalized insights to improve your wellbeing.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 feature-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-newspaper text-wellnest mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="card-title">Health News</h5>
+                    <p class="card-text">Stay updated with the latest health news, research, and wellness tips.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 feature-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-robot text-wellnest mb-3" style="font-size: 2.5rem;"></i>
+                    <h5 class="card-title">AI Companion</h5>
+                    <p class="card-text">Get personalized health advice and support from our AI health companion.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Why Choose Wellnest?</h2>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="d-flex align-items-start mb-4">
+                    <div class="bg-wellnest text-white rounded-circle p-3 me-3">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div>
+                        <h5>Secure & Private</h5>
+                        <p>Your health data is encrypted and securely stored. We prioritize your privacy above all.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start mb-4">
+                    <div class="bg-wellnest text-white rounded-circle p-3 me-3">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <div>
+                        <h5>Personalized Care</h5>
+                        <p>Get healthcare recommendations tailored to your unique health profile and needs.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start mb-4">
+                    <div class="bg-wellnest text-white rounded-circle p-3 me-3">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <div>
+                        <h5>24/7 Support</h5>
+                        <p>Our AI chatbot is available around the clock to answer your health questions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex align-items-start mb-4">
+                    <div class="bg-wellnest text-white rounded-circle p-3 me-3">
+                        <i class="bi bi-hospital"></i>
+                    </div>
+                    <div>
+                        <h5>Clinic Network</h5>
+                        <p>Access our network of trusted healthcare providers and clinics near you.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2>Ready to take control of your health?</h2>
+        <p class="lead">Explore our features and start your wellness journey today.</p>
+        <div class="mt-4">
+            <a href="#" class="btn btn-wellnest btn-lg me-2">Get Started</a>
+            <a href="#" class="btn btn-outline-secondary btn-lg">Learn More</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingButtons = document.querySelectorAll('.rating-btn');
+    const feedbackSection = document.getElementById('feedbackSection');
+    const feedbackForm = document.getElementById('feedbackForm');
+    const ratingResponse = document.getElementById('ratingResponse');
+    const thankYouMessage = document.getElementById('thankYouMessage');
+    const dailyCheckinSection = document.getElementById('dailyCheckinSection');
+    let selectedRating = 0;
+    
+    // Check if user has already checked in today
+    fetch('/check_checkin_status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.checked_in) {
+                // Hide the check-in section if already checked in today
+                if (dailyCheckinSection) dailyCheckinSection.style.display = 'none';
+                // Show thank you message
+                if (thankYouMessage) {
+                    thankYouMessage.classList.remove('d-none');
+                    thankYouMessage.textContent = 'You\'ve already completed your daily check-in today. Come back tomorrow!';
+                }
+            }
+        })
+        .catch(error => console.error('Error checking check-in status:', error));
+
+    // Handle rating button clicks
+    ratingButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            ratingButtons.forEach(btn => {
+                btn.classList.remove('btn-danger', 'btn-success');
+                btn.classList.add('btn-outline-secondary');
+            });
+            
+            // Set active class on clicked button
+            selectedRating = parseInt(this.getAttribute('data-rating'));
+            const isPositive = selectedRating >= 4;
+            this.classList.remove('btn-outline-secondary');
+            this.classList.add(isPositive ? 'btn-success' : 'btn-danger');
+            
+            // Show feedback section
+            feedbackSection.classList.remove('d-none');
+            
+            // Set response message
+            if (isPositive) {
+                const messages = [
+                    "That's wonderful! We're glad you're feeling great today!",
+                    "Awesome! Keep up the positive energy!",
+                    "Fantastic! We love your enthusiasm!"
+                ];
+                ratingResponse.textContent = messages[Math.floor(Math.random() * messages.length)];
+                thankYouMessage.classList.remove('d-none');
+                
+                // Send positive feedback to server
+                sendFeedback(selectedRating, '');
+            } else {
+                const messages = [
+                    "We're sorry to hear that. How can we help?",
+                    "Thank you for sharing. What's been challenging today?",
+                    "We appreciate your honesty. What's on your mind?"
+                ];
+                ratingResponse.textContent = messages[Math.floor(Math.random() * messages.length)];
+                feedbackForm.classList.remove('d-none');
+            }
+        });
+    });
+    
+    // Handle feedback form submission
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const feedbackText = document.getElementById('feedbackText').value.trim();
+            
+            if (feedbackText) {
+                // Send feedback to server
+                sendFeedback(selectedRating, feedbackText);
+                
+                // Show thank you message and hide form
+                feedbackForm.classList.add('d-none');
+                thankYouMessage.classList.remove('d-none');
+            }
+        });
+    }
+    
+    // Function to send feedback to server
+    function sendFeedback(rating, feedback) {
+        // Disable all rating buttons to prevent multiple submissions
+        document.querySelectorAll('.rating-btn').forEach(btn => {
+            btn.disabled = true;
+        });
+        
+        fetch('/submit_feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                rating: rating,
+                feedback: feedback,
+                user_id: '{{ current_user.id }}',
+                username: '{{ current_user.username }}'
+            })
+        })
+        .then(response => {
+            if (response.status === 429) {
+                // Rate limited
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Rate limit exceeded');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Feedback submitted:', data);
+            // Show thank you message and hide form
+            feedbackForm.classList.add('d-none');
+            thankYouMessage.classList.remove('d-none');
+        })
+        .catch(error => {
+            console.error('Error submitting feedback:', error);
+            alert(error.message || 'Error submitting feedback. Please try again.');
+            // Re-enable rating buttons on error
+            document.querySelectorAll('.rating-btn').forEach(btn => {
+                btn.disabled = false;
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

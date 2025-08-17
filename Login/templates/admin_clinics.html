@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}WellNest - Admin Clinics Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Admin Clinics Management</h2>
+    <p>Manage all healthcare providers and clinics in the system</p>
+    
+    <div class="d-flex justify-content-between mb-4">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Back to Admin Dashboard</a>
+        <a href="{{ url_for('admin_add_clinic') }}" class="btn btn-primary">Add New Clinic</a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-danger text-white">
+            <h3 class="card-title mb-0">All Clinics</h3>
+        </div>
+        <div class="card-body">
+            {% if clinics %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Specialties</th>
+                                <th>Location</th>
+                                <th>Contact</th>
+                                <th>Opening Hours</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for clinic in clinics %}
+                            <tr>
+                                <td>{{ clinic.id }}</td>
+                                <td>{{ clinic.name }}</td>
+                                <td>{{ clinic.specialties or 'General Practice' }}</td>
+                                <td>{{ clinic.location }}</td>
+                                <td>{{ clinic.contact }}</td>
+                                <td>{{ clinic.opening_hours }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('admin_edit_clinic', clinic_id=clinic.id) }}" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteClinicModal{{ clinic.id }}">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Delete Confirmation Modal -->
+                                    <div class="modal fade" id="deleteClinicModal{{ clinic.id }}" tabindex="-1" aria-labelledby="deleteClinicModalLabel{{ clinic.id }}" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-danger text-white">
+                                                    <h5 class="modal-title" id="deleteClinicModalLabel{{ clinic.id }}">Confirm Delete</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete the clinic: <strong>{{ clinic.name }}</strong>?</p>
+                                                    <p class="text-danger"><small>This action cannot be undone.</small></p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <form action="{{ url_for('admin_delete_clinic', clinic_id=clinic.id) }}" method="POST" style="display: inline;">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="btn btn-danger">Delete Clinic</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i> No clinics have been added yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

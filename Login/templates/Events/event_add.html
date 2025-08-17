@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Add an Event{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='event_add.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 900px;">
+    <div class="card shadow p-4">
+        <h3 class="text-danger fw-bold mb-4">Add a New Event/Meeting</h3>
+        <form id="eventForm" action="{{ url_for('event_add') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <!-- Form fields here -->
+            <div class="mb-3">
+                <label for="title" class="form-label">Event Title</label>
+                <input type="text" class="form-control" id="title" name="title" maxlength="70"
+                    placeholder="Maximum 70 characters" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" maxlength="150"
+                    placeholder="Maximum 150 characters" required></textarea>
+            </div>
+
+            <!-- Other form fields -->
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="category" class="form-label">Category</label>
+                    <input type="text" class="form-control" id="category" name="category" maxlength="30"
+                        placeholder="E.g. (Taichi, badminton,...)" required />
+                </div>
+                <div class="col">
+                    <label for="sessions" class="form-label">No. of Sessions</label>
+                    <input type="number" class="form-control" id="sessions" name="sessions" min="1" max="30"
+                        placeholder="Maximum 30 sessions" required />
+                </div>
+                <div class="col">
+                    <label for="price" class="form-label">Price (optional)</label>
+                    <input type="number" class="form-control" id="price" name="price" min="0" max="200"
+                        placeholder="Maximum S$200" />
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="vacancy" class="form-label">Vacancy</label>
+                    <input type="number" class="form-control" id="vacancy" name="vacancy" min="1" max="100"
+                        placeholder="Maximum Vacancy: 100" required />
+                </div>
+                <div class="col">
+                    <label for="intensity" class="form-label">Intensity</label>
+                    <select class="form-select" id="intensity" name="intensity" required>
+                        <option value="">Select intensity</option>
+                        <option value="Low intensity">Low</option>
+                        <option value="Moderate intensity">Moderate</option>
+                        <option value="High intensity">High</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="image" class="form-label">Upload an Image (optional)</label>
+                    <input type="file" class="form-control" id="image" name="image"
+                        accept="image/png,image/jpeg,image/jpg,image/webp" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" class="form-control" id="location" name="location" required />
+            </div>
+
+            <div class="row mb-3">
+                <div class="col">
+                    <label for="date" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="date" name="date" required />
+                </div>
+                <div class="col">
+                    <label for="startTime" class="form-label">Start Time</label>
+                    <input type="time" class="form-control" id="startTime" name="startTime" required />
+                </div>
+                <div class="col">
+                    <label for="endTime" class="form-label">End Time</label>
+                    <input type="time" class="form-control" id="endTime" name="endTime" required />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="organizer" class="form-label">Organizer</label>
+                <input type="text" class="form-control" id="organizer" name="organizer" maxlength="50"
+                    placeholder="Name of organizer" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="contact" class="form-label">Contact Email</label>
+                <input type="email" class="form-control" id="contact" name="contact" placeholder="Email for inquiries"
+                    required />
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="termsCheck" required />
+                    <label class="form-check-label" for="termsCheck">
+                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and
+                            Conditions</a>
+                    </label>
+                </div>
+            </div>
+
+            <div id="captchaContainer" class="mb-3" style="min-height: 78px;">
+                <div class="g-recaptcha" data-sitekey="6Lf2VacrAAAAAFqNeYDzHD-S0E1TSt8ZZDvEDlmr" data-theme="light" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+                <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('events') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-danger">Create Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Event Creation and Management</h6>
+                <p>By creating an event, you agree to provide accurate and complete information. You are responsible for managing your event, including updates, cancellations, and communications with attendees.</p>
+
+                <h6>2. Content Guidelines</h6>
+                <p>Events must not contain offensive, inappropriate, or illegal content. WellNest reserves the right to remove any event that violates these guidelines without notice.</p>
+
+                <h6>3. Privacy and Data</h6>
+                <p>Information collected through event creation will be used solely for the purpose of event management and will be handled in accordance with our Privacy Policy.</p>
+
+                <h6>4. Liability</h6>
+                <p>WellNest is not responsible for any damages, injuries, or losses that may occur during events. Event organizers assume full responsibility for their events.</p>
+
+                <h6>5. Cancellation Policy</h6>
+                <p>Event organizers must provide reasonable notice for cancellations and are responsible for communicating changes to attendees.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+    // reCAPTCHA callback functions
+    function onRecaptchaSuccess(token) {
+        document.getElementById('g-recaptcha-response').value = token;
+    }
+    
+    function onRecaptchaExpired() {
+        document.getElementById('g-recaptcha-response').value = '';
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById("eventForm");
+        const captchaContainer = document.getElementById("captchaContainer");
+        const submitBtn = document.querySelector("button[type='submit']");
+
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                // Client-side validation
+                const title = document.getElementById("title").value.trim();
+                const description = document.getElementById("description").value.trim();
+                const category = document.getElementById("category").value.trim();
+                const sessions = document.getElementById("sessions").value;
+                const price = document.getElementById("price").value || "0";
+                const vacancy = document.getElementById("vacancy").value;
+                const intensity = document.getElementById("intensity").value;
+                const location = document.getElementById("location").value.trim();
+                const date = document.getElementById("date").value;
+                const startTime = document.getElementById("startTime").value;
+                const endTime = document.getElementById("endTime").value;
+                const organizer = document.getElementById("organizer").value.trim();
+                const contact = document.getElementById("contact").value.trim();
+                const termsCheck = document.getElementById("termsCheck");
+
+                // Validate required fields
+                if (!title || !description || !category || !sessions || !vacancy || !intensity || 
+                    !location || !date || !startTime || !endTime || !organizer || !contact) {
+                    e.preventDefault();
+                    alert("Please fill in all required fields.");
+                    return false;
+                }
+
+                // Validate price is a positive number
+                if (price && (isNaN(price) || parseFloat(price) < 0)) {
+                    e.preventDefault();
+                    alert("Please enter a valid price (must be a positive number).");
+                    return false;
+                }
+
+                // Validate sessions is a positive integer
+                if (!/^\d+$/.test(sessions) || parseInt(sessions) <= 0) {
+                    e.preventDefault();
+                    alert("Please enter a valid number of sessions (must be a positive integer).");
+                    return false;
+                }
+
+                // Validate vacancy is a positive integer
+                if (!/^\d+$/.test(vacancy) || parseInt(vacancy) <= 0) {
+                    e.preventDefault();
+                    alert("Please enter a valid vacancy number (must be a positive integer).");
+                    return false;
+                }
+
+                // Validate terms checkbox
+                if (!termsCheck.checked) {
+                    e.preventDefault();
+                    alert("You must agree to the Terms and Conditions to proceed.");
+                    return false;
+                }
+
+                // Validate reCAPTCHA
+                const recaptchaResponse = grecaptcha && grecaptcha.getResponse();
+                if (!recaptchaResponse) {
+                    e.preventDefault();
+                    alert("Please complete the reCAPTCHA verification.");
+                    return false;
+                }
+
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(contact)) {
+                    e.preventDefault();
+                    alert("Please enter a valid email address.");
+                    return false;
+                }
+
+                // Validate time range
+                if (startTime >= endTime) {
+                    e.preventDefault();
+                    alert("End time must be after start time.");
+                    return false;
+                }
+                
+                // If all validations pass, the form will submit normally to the server
+                return true;
+            });
+        }
+    });
+</script>
+{% endblock %}

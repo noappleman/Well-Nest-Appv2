@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<p>Welcome, {{ current_user.username }}!</p>
+<hr>
+<h3>Manage Authenticators</h3>
+<div id="webauthn-credentials">
+    {% if current_user.credentials %}
+        <ul style="list-style-type: none; padding: 0;">
+        {% for cred in current_user.credentials %}
+            <li style="background-color: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #28a745;">
+                <strong>🔐 Authenticator {{ loop.index }}</strong><br>
+                <small style="color: #6c757d;">
+                    Registered: Touch ID/Face ID/Security Key<br>
+                    Status: Active
+                    {% if cred.transports %}
+                        <br>Type: {{ cred.transports.replace(',', ', ').title() }}
+                    {% endif %}
+                </small>
+            </li>
+        {% endfor %}
+        </ul>
+        <p style="color: #6c757d; font-size: 0.9em; margin-top: 15px;">
+            <em>You have {{ current_user.credentials|length }} authenticator(s) registered for secure login.</em>
+        </p>
+    {% else %}
+        <div style="background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; margin: 10px 0;">
+            <strong>⚠️ No authenticators registered yet.</strong><br>
+            <small>Register a Touch ID, Face ID, or security key for faster and more secure login.</small>
+        </div>
+    {% endif %}
+</div>
+<button id="register-webauthn">Register New Authenticator</button>
+<p><a href="{{ url_for('logout') }}">Logout</a></p>
+{% endblock %}
