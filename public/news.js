@@ -690,6 +690,10 @@ class NewsletterApp {
                             const img = newsCards[index].querySelector('.news-image');
                             if (img) {
                                 img.src = realImageUrl;
+                                // Ensure image maintains proper dimensions
+                                img.style.width = '100%';
+                                img.style.height = '200px';
+                                img.style.objectFit = 'cover';
                             }
                         }
                     }
