@@ -2635,11 +2635,17 @@ def generate_ai_response(message, username):
             # Try a direct API test first
             test_url = "https://generativelanguage.googleapis.com/v1beta/models"
             params = {'key': api_key}
-            response = requests.get(test_url, params=params, timeout=10)
-            
-            if response.status_code != 200:
-                app.logger.error(f"API test failed with status {response.status_code}: {response.text}")
-                return f"I'm having trouble connecting to the AI service. (API Error: {response.status_code})"
+            app.logger.info(f"Testing API connectivity to {test_url}")
+            try:
+                response = requests.get(test_url, params=params, timeout=10)
+                app.logger.info(f"API test response status: {response.status_code}")
+                
+                if response.status_code != 200:
+                    app.logger.error(f"API test failed with status {response.status_code}: {response.text}")
+                    return f"I'm having trouble connecting to the AI service. (API Error: {response.status_code}: {response.text[:100]})"
+            except requests.exceptions.RequestException as req_err:
+                app.logger.error(f"API test request failed: {str(req_err)}")
+                return f"I'm having trouble connecting to the AI service. (Request Error: {str(req_err)})"
             
             # If API test passed, try using the SDK
             genai.configure(api_key=api_key)
@@ -2661,12 +2667,15 @@ def generate_ai_response(message, username):
             
             # Generate response with timeout
             try:
+                app.logger.info(f"Sending prompt to Gemini API (length: {len(prompt)})")
                 response = model.generate_content(prompt)
+                app.logger.info("Received response from Gemini API")
                 
                 if response and hasattr(response, 'text'):
+                    app.logger.info(f"Successful response received (length: {len(response.text)})")
                     return response.text
                 else:
-                    app.logger.warning("Unexpected response format from Gemini API")
+                    app.logger.warning(f"Unexpected response format from Gemini API: {type(response)} - {str(response)[:200]}")
                     return fallback_response
                     
             except Exception as api_error:
