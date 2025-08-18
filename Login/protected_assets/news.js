@@ -3,7 +3,7 @@ class NewsletterApp {
     constructor() {
         this.currentLanguage = 'en';
         this.currentSource = 'general';
-        this.apiKey = '48136d0bdf1a4aa6a94d12880297cc56'; // NewsAPI.org key for international news
+        this.apiKey = '7da335179ec2422090bf09a8f4103b56'; // NewsAPI.org key for international news
         this.baseUrl = 'https://newsapi.org/v2';
         this.init();
     }
