@@ -619,14 +619,20 @@ def check_checkin_status():
             time_since_last_checkin = datetime.utcnow() - current_user.last_checkin_timestamp
             if time_since_last_checkin.total_seconds() < 300:  # 5 minutes = 300 seconds
                 # User has checked in within the last 5 minutes
+                next_available_time = current_user.last_checkin_timestamp + timedelta(minutes=5)
                 return jsonify({
                     'checked_in': True,
-                    'next_available': (current_user.last_checkin_timestamp + timedelta(minutes=5)).isoformat()
+                    'next_available': next_available_time.isoformat(),
+                    'seconds_remaining': 300 - time_since_last_checkin.total_seconds()
                 })
     except Exception as e:
         app.logger.error(f"Error checking check-in status: {str(e)}")
+        # Continue and return not checked in
     
-    return jsonify({'checked_in': False})
+    return jsonify({
+        'checked_in': False,
+        'message': 'You can check in now!'
+    })
 
 @app.route('/submit_feedback', methods=['POST'])
 @login_required
@@ -645,10 +651,17 @@ def submit_feedback():
                 if current_user.last_checkin_timestamp:
                     time_since_last_checkin = datetime.utcnow() - current_user.last_checkin_timestamp
                     if time_since_last_checkin.total_seconds() < 300:  # 5 minutes = 300 seconds
-                        next_available = (current_user.last_checkin_timestamp + timedelta(minutes=5)).strftime('%H:%M:%S')
+                        next_available = (current_user.last_checkin_timestamp + timedelta(minutes=5))
+                        next_available_str = next_available.strftime('%H:%M:%S')
+                        seconds_remaining = int(300 - time_since_last_checkin.total_seconds())
+                        
+                        app.logger.warning(f"Rate limit exceeded: User {current_user.username} attempted to check in too soon. Must wait {seconds_remaining} seconds.")
+                        
                         return jsonify({
                             'status': 'error',
-                            'message': f'You can only submit feedback once every 5 minutes. Please try again after {next_available}.'
+                            'message': f'You can only check in once every 5 minutes. Please try again after {next_available_str}.',
+                            'next_available': next_available.isoformat(),
+                            'seconds_remaining': seconds_remaining
                         }), 429  # 429 Too Many Requests
             except Exception as e:
                 app.logger.error(f"Error checking recent submissions: {str(e)}")
@@ -657,6 +670,8 @@ def submit_feedback():
             # Update the last check-in timestamp in the database
             current_user.last_checkin_timestamp = datetime.utcnow()
             db.session.commit()
+            
+            app.logger.info(f"User {current_user.username} successfully checked in")
             
             # Log the daily check-in
             log_security_event(

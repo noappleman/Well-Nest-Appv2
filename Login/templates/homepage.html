@@ -167,18 +167,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const dailyCheckinSection = document.getElementById('dailyCheckinSection');
     let selectedRating = 0;
     
-    // Check if user has already checked in today
+    // Check if user has already checked in recently (within 5 minutes)
     fetch('/check_checkin_status')
         .then(response => response.json())
         .then(data => {
             if (data.checked_in) {
-                // Hide the check-in section if already checked in today
-                if (dailyCheckinSection) dailyCheckinSection.style.display = 'none';
-                // Show thank you message
-                if (thankYouMessage) {
-                    thankYouMessage.classList.remove('d-none');
-                    thankYouMessage.textContent = 'You\'ve already completed your daily check-in today. Come back tomorrow!';
-                }
+                // Disable the rating buttons if already checked in recently
+                ratingButtons.forEach(btn => {
+                    btn.disabled = true;
+                });
+                
+                // Show cooldown message
+                feedbackSection.classList.remove('d-none');
+                ratingResponse.textContent = '';
+                feedbackForm.classList.add('d-none');
+                thankYouMessage.classList.remove('d-none');
+                
+                // Format the next available time
+                const nextAvailable = new Date(data.next_available);
+                const formattedTime = nextAvailable.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                // Update the thank you message with cooldown information
+                thankYouMessage.innerHTML = `<div class="alert alert-warning">
+                    <i class="bi bi-clock-history"></i> You've already checked in. You can check in again after ${formattedTime}.
+                </div>`;
             }
         })
         .catch(error => console.error('Error checking check-in status:', error));
