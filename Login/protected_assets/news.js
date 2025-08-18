@@ -98,9 +98,20 @@ class NewsletterApp {
 
         console.log('Fetching from URL:', url);
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+        
         if (!response.ok) {
             console.error('API response not ok:', response.status, response.statusText);
+            // If 426 error, try alternative approach
+            if (response.status === 426) {
+                console.log('Trying alternative NewsAPI approach...');
+                return await this.fetchNewsFromAPIAlternative();
+            }
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -114,6 +125,46 @@ class NewsletterApp {
         
         const articles = data.articles || [];
         console.log('Articles count:', articles.length);
+        
+        // Add translation markers for NewsAPI articles
+        return articles.map(article => ({
+            ...article,
+            originalTitle: article.title,
+            originalDescription: article.description,
+            needsTranslation: true
+        }));
+    }
+
+    async fetchNewsFromAPIAlternative() {
+        // Alternative approach using CORS proxy for NewsAPI
+        const language = this.getLanguageCode();
+        let url;
+
+        if (this.currentSource === 'general') {
+            url = `${this.baseUrl}/top-headlines?country=sg&language=${language}&apiKey=${this.apiKey}`;
+        } else {
+            url = `${this.baseUrl}/top-headlines?sources=${this.currentSource}&apiKey=${this.apiKey}`;
+        }
+
+        // Use CORS proxy to bypass 426 error
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        console.log('Fetching via proxy:', proxyUrl);
+        
+        const response = await fetch(proxyUrl);
+        if (!response.ok) {
+            throw new Error(`Proxy error! status: ${response.status}`);
+        }
+
+        const proxyData = await response.json();
+        const data = JSON.parse(proxyData.contents);
+        
+        if (data.status !== 'ok') {
+            console.error('API returned error:', data.message);
+            throw new Error(`API error: ${data.message}`);
+        }
+        
+        const articles = data.articles || [];
+        console.log('Articles count via proxy:', articles.length);
         
         // Add translation markers for NewsAPI articles
         return articles.map(article => ({
