@@ -1816,7 +1816,8 @@ def admin_create_event():
         
     if request.method == 'POST':
         # Get admin user (for event ownership)
-        admin_user = User.query.filter_by(username='admin').first()
+        admin_username = os.environ.get('ADMIN_USERNAME', 'WellNestAdmin')
+        admin_user = User.query.filter_by(username=admin_username).first()
         if not admin_user:
             flash('Admin user not found', 'danger')
             return redirect(url_for('admin_events'))
