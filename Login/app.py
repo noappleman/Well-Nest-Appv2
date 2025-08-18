@@ -1815,12 +1815,16 @@ def admin_create_event():
         return redirect(url_for('login'))
         
     if request.method == 'POST':
-        # Get admin user (for event ownership)
+        # Get admin user (for event ownership) - create if doesn't exist
         admin_username = os.environ.get('ADMIN_USERNAME', 'WellNestAdmin')
         admin_user = User.query.filter_by(username=admin_username).first()
         if not admin_user:
-            flash('Admin user not found', 'danger')
-            return redirect(url_for('admin_events'))
+            # Create admin user if it doesn't exist
+            admin_password = os.environ.get('ADMIN_PASSWORD', 'WellNestAdmin123!')
+            admin_user = User(username=admin_username, email=f"{admin_username}@wellnest.com")
+            admin_user.set_password(admin_password)
+            db.session.add(admin_user)
+            db.session.commit()
             
         # Process form data
         try:
