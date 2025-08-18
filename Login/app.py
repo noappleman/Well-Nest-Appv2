@@ -248,6 +248,7 @@ def add_security_headers(response):
             f"object-src 'none'; "
             f"base-uri 'self'; "
             f"form-action 'self'; "
+            f"frame-ancestors 'self'; "
         )
         
         # Add CSP header
