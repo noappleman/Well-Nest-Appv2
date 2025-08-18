@@ -2,6 +2,7 @@
 
 # Create necessary directories
 mkdir -p static
+mkdir -p Login/static/uploads
 
 # Copy static assets from Login and Chat modules to static directory for Flask
 echo "Copying static assets to static directory..."
