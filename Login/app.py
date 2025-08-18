@@ -380,10 +380,10 @@ def protected_js(filename):
     # Check referer to ensure it's coming from our pages
     referer = request.headers.get('Referer', '')
     
-    # For webauthn.js, only allow access from login/register pages
+    # For webauthn.js, only allow access from login/register/edit_profile pages
     if filename == 'webauthn.js':
-        if not referer or not (('/login' in referer) or ('/register' in referer)):
-            abort(403)  # Forbidden if not from login/register page
+        if not referer or not (('/login' in referer) or ('/register' in referer) or ('/edit_profile' in referer)):
+            abort(403)  # Forbidden if not from allowed pages
     # For other files, require authentication
     elif not current_user.is_authenticated:
         abort(403)  # Forbidden if not authenticated
