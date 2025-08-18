@@ -1490,8 +1490,10 @@ def login():
             log_security_event('LOGIN_FAILED', username, request.remote_addr, 'Missing username or password')
             return redirect(url_for('login'))
         
-        # Check for admin login first
-        if username == 'WellNestAdmin' and password == 'WellNestAdmin123!':
+        # Check for admin login first using environment variables
+        admin_username = os.environ.get('ADMIN_USERNAME', 'WellNestAdmin')
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'WellNestAdmin123!')
+        if username == admin_username and password == admin_password:
             session['admin_logged_in'] = True
             flash('Welcome, Administrator!', 'success')
             log_security_event('ADMIN_LOGIN_SUCCESS', username, request.remote_addr, 'Admin login successful')
