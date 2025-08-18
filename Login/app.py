@@ -2061,6 +2061,29 @@ def admin_delete_user(user_id):
     # Delete messages where user is sender or receiver
     for message in sent_messages + received_messages:
         db.session.delete(message)
+        
+    # Delete associated chat requests
+    sent_requests = ChatRequest.query.filter_by(sender_id=user_id).all()
+    received_requests = ChatRequest.query.filter_by(receiver_id=user_id).all()
+    
+    # Delete chat requests where user is sender or receiver
+    for request in sent_requests + received_requests:
+        db.session.delete(request)
+        
+    # Delete health metrics
+    health_metrics = HealthMetrics.query.filter_by(user_id=user_id).all()
+    for metric in health_metrics:
+        db.session.delete(metric)
+        
+    # Delete events created by the user
+    events = Event.query.filter_by(user_id=user_id).all()
+    for event in events:
+        db.session.delete(event)
+        
+    # Delete event signups
+    event_signups = EventSignup.query.filter_by(user_id=user_id).all()
+    for signup in event_signups:
+        db.session.delete(signup)
     
     db.session.delete(user)
     db.session.commit()
