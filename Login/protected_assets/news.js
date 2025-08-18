@@ -95,9 +95,6 @@ class NewsletterApp {
 
         if (this.currentSource === 'general') {
             url = `${this.baseUrl}/top-headlines?country=sg&language=${language}&apiKey=${this.apiKey}`;
-        } else if (this.currentSource.startsWith('st-')) {
-            // If it's a Straits Times source, use fetchStraitsTimes instead
-            return await this.fetchStraitsTimes();
         } else {
             url = `${this.baseUrl}/top-headlines?sources=${this.currentSource}&apiKey=${this.apiKey}`;
         }
@@ -928,20 +925,18 @@ class NewsletterApp {
         // Handle image loading
         const img = card.querySelector('.news-image');
         if (article.urlToImage) {
-            // Create a new image to test loading
-            const testImg = new Image();
-            testImg.onload = () => {
-                img.src = article.urlToImage;
-                // Ensure consistent image dimensions
-                img.style.width = '100%';
-                img.style.height = '200px';
-                img.style.objectFit = 'cover';
-            };
-            testImg.onerror = () => {
+            // Set image source directly
+            img.src = article.urlToImage;
+            // Ensure consistent image dimensions
+            img.style.width = '100%';
+            img.style.height = '200px';
+            img.style.objectFit = 'cover';
+            
+            // Add error handler in case image fails to load
+            img.onerror = () => {
                 // Fallback to a simple colored rectangle
                 img.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='100%25' height='100%25' fill='%23667eea'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='18' font-weight='bold'%3E📰 News%3C/text%3E%3C/svg%3E`;
             };
-            testImg.src = article.urlToImage;
         } else {
             // No image provided, use default
             img.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='200'%3E%3Crect width='100%25' height='100%25' fill='%23667eea'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='Arial' font-size='18' font-weight='bold'%3E📰 News%3C/text%3E%3C/svg%3E`;
