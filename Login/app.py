@@ -897,7 +897,8 @@ def admin_clinics():
     
     # Get all clinics from the database
     all_clinics = Clinic.query.all()
-    return render_template('admin_clinics.html', clinics=all_clinics)
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_clinics.html', clinics=all_clinics, csp_nonce=nonce)
 
 # Add a new clinic (admin only)
 @app.route('/admin/clinics/add', methods=['GET', 'POST'])
@@ -963,7 +964,8 @@ def admin_add_clinic():
         flash('Clinic added successfully!', 'success')
         return redirect(url_for('admin_clinics'))
     
-    return render_template('admin_add_clinic.html')
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_add_clinic.html', csp_nonce=nonce)
 
 # Edit an existing clinic (admin only)
 @app.route('/admin/clinics/edit/<int:clinic_id>', methods=['GET', 'POST'])
@@ -1026,7 +1028,8 @@ def admin_edit_clinic(clinic_id):
         flash('Clinic updated successfully!', 'success')
         return redirect(url_for('admin_clinics'))
     
-    return render_template('admin_edit_clinic.html', clinic=clinic)
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_edit_clinic.html', clinic=clinic, csp_nonce=nonce)
 
 # Delete a clinic (admin only)
 @app.route('/admin/clinics/delete/<int:clinic_id>', methods=['POST'])
@@ -1786,7 +1789,8 @@ def admin_dashboard():
         return redirect(url_for('login'))
     
     users = User.query.all()
-    return render_template('admin_dashboard.html', users=users)
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_dashboard.html', users=users, csp_nonce=nonce)
 
 @app.route('/admin/events')
 def admin_events():
@@ -1796,7 +1800,8 @@ def admin_events():
     
     # Get all events with their creators
     events = Event.query.join(User).all()
-    return render_template('admin_events.html', events=events)
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_events.html', events=events, csp_nonce=nonce)
 
 @app.route('/admin/events/create', methods=['GET', 'POST'])
 def admin_create_event():
@@ -1866,7 +1871,8 @@ def admin_create_event():
             flash(f'Error creating event: {str(e)}', 'danger')
             return redirect(url_for('admin_create_event'))
     
-    return render_template('admin_create_event.html')
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_create_event.html', csp_nonce=nonce)
 
 @app.route('/admin/events/edit/<int:event_id>', methods=['GET', 'POST'])
 def admin_edit_event(event_id):
@@ -1912,7 +1918,8 @@ def admin_edit_event(event_id):
             db.session.rollback()
             flash(f'Error updating event: {str(e)}', 'danger')
             
-    return render_template('admin_edit_event.html', event=event)
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_edit_event.html', event=event, csp_nonce=nonce)
 
 @app.route('/admin/events/delete/<int:event_id>', methods=['POST'])
 def admin_delete_event(event_id):
@@ -1971,7 +1978,8 @@ def admin_security_logs():
             
         if not os.path.exists(log_file):
             flash(f'Security log file not found at {log_file}', 'warning')
-            return render_template('admin_security_logs.html', logs=[], page=1, total_pages=1, event_types=[], selected_type='')
+            nonce = session.get('csp_nonce', generate_nonce())
+            return render_template('admin_security_logs.html', logs=[], page=1, total_pages=1, event_types=[], selected_type='', csp_nonce=nonce)
             
         with open(log_file, 'r') as f:
             log_lines = f.readlines()
@@ -2020,18 +2028,21 @@ def admin_security_logs():
         end_idx = min(start_idx + per_page, total_logs)
         paginated_logs = logs[start_idx:end_idx]
         
+        nonce = session.get('csp_nonce', generate_nonce())
         return render_template(
             'admin_security_logs.html',
             logs=paginated_logs,
             page=page,
             total_pages=total_pages,
             event_types=sorted(event_types),
-            selected_type=selected_type
+            selected_type=selected_type,
+            csp_nonce=nonce
         )
         
     except Exception as e:
         flash(f'Error reading security logs: {str(e)}', 'danger')
-        return render_template('admin_security_logs.html', logs=[], page=1, total_pages=1, event_types=[], selected_type='')
+        nonce = session.get('csp_nonce', generate_nonce())
+        return render_template('admin_security_logs.html', logs=[], page=1, total_pages=1, event_types=[], selected_type='', csp_nonce=nonce)
 
 @app.route('/admin/logout')
 def admin_logout():
@@ -2084,12 +2095,14 @@ def admin_edit_user(user_id):
         if not username_valid:
             flash(username_msg, 'error')
             log_security_event('ADMIN_EDIT_FAILED', original_username, request.remote_addr, f'Invalid username: {username_msg}')
-            return render_template('admin_edit_user.html', user=user)
+            nonce = session.get('csp_nonce', generate_nonce())
+            return render_template('admin_edit_user.html', user=user, csp_nonce=nonce)
             
         if not email_valid:
             flash(email_msg, 'error')
             log_security_event('ADMIN_EDIT_FAILED', original_username, request.remote_addr, f'Invalid email: {email_msg}')
-            return render_template('admin_edit_user.html', user=user)
+            nonce = session.get('csp_nonce', generate_nonce())
+            return render_template('admin_edit_user.html', user=user, csp_nonce=nonce)
         
         # Validate password if provided
         if new_password:
@@ -2097,7 +2110,8 @@ def admin_edit_user(user_id):
             if not password_valid:
                 flash(password_msg, 'error')
                 log_security_event('ADMIN_EDIT_FAILED', original_username, request.remote_addr, f'Weak password: {password_msg}')
-                return render_template('admin_edit_user.html', user=user)
+                nonce = session.get('csp_nonce', generate_nonce())
+                return render_template('admin_edit_user.html', user=user, csp_nonce=nonce)
         
         # Check if username or email already exists (excluding current user)
         existing_user = User.query.filter(
@@ -2128,7 +2142,8 @@ def admin_edit_user(user_id):
             log_security_event('ADMIN_EDIT_SUCCESS', new_username, request.remote_addr, f"User updated: {', '.join(changes)}")
             return redirect(url_for('admin_dashboard'))
     
-    return render_template('admin_edit_user.html', user=user)
+    nonce = session.get('csp_nonce', generate_nonce())
+    return render_template('admin_edit_user.html', user=user, csp_nonce=nonce)
 
 
 @app.route('/webauthn/register/begin', methods=['POST'])
