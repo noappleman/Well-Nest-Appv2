@@ -2054,6 +2054,14 @@ def admin_delete_user(user_id):
     for credential in user.credentials:
         db.session.delete(credential)
     
+    # Delete or update associated chat messages
+    sent_messages = ChatMessage.query.filter_by(sender_id=user_id).all()
+    received_messages = ChatMessage.query.filter_by(receiver_id=user_id).all()
+    
+    # Delete messages where user is sender or receiver
+    for message in sent_messages + received_messages:
+        db.session.delete(message)
+    
     db.session.delete(user)
     db.session.commit()
     
