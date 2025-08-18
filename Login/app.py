@@ -2050,51 +2050,67 @@ def admin_delete_user(user_id):
         log_security_event('ADMIN_ACCESS_DENIED', None, request.remote_addr, f'Unauthorized admin delete attempt for user_id: {user_id}')
         return redirect(url_for('login'))
     
-    user = User.query.get_or_404(user_id)
-    username = user.username
-    credential_count = len(user.credentials)
-    
-    # Delete associated WebAuthn credentials first
-    for credential in user.credentials:
-        db.session.delete(credential)
-    
-    # Delete or update associated chat messages
-    sent_messages = ChatMessage.query.filter_by(sender_id=user_id).all()
-    received_messages = ChatMessage.query.filter_by(receiver_id=user_id).all()
-    
-    # Delete messages where user is sender or receiver
-    for message in sent_messages + received_messages:
-        db.session.delete(message)
+    try:
+        user = User.query.get_or_404(user_id)
+        username = user.username
+        credential_count = len(user.credentials)
         
-    # Delete associated chat requests
-    sent_requests = ChatRequest.query.filter_by(sender_id=user_id).all()
-    received_requests = ChatRequest.query.filter_by(receiver_id=user_id).all()
-    
-    # Delete chat requests where user is sender or receiver
-    for request in sent_requests + received_requests:
-        db.session.delete(request)
-        
-    # Delete health metrics
-    health_metrics = HealthMetric.query.filter_by(user_id=user_id).all()
-    for metric in health_metrics:
-        db.session.delete(metric)
-        
-    # Delete events created by the user
-    events = Event.query.filter_by(user_id=user_id).all()
-    for event in events:
-        db.session.delete(event)
-        
-    # Delete event signups
-    event_signups = EventSignup.query.filter_by(user_id=user_id).all()
-    for signup in event_signups:
-        db.session.delete(signup)
-    
-    db.session.delete(user)
-    db.session.commit()
-    
-    flash(f'User "{username}" has been deleted successfully.', 'success')
-    log_security_event('ADMIN_DELETE_SUCCESS', username, request.remote_addr, f'User deleted with {credential_count} WebAuthn credentials')
-    return redirect(url_for('admin_dashboard'))
+        # Start a transaction
+        try:
+            # Delete associated WebAuthn credentials first
+            for credential in user.credentials:
+                db.session.delete(credential)
+            
+            # Delete or update associated chat messages
+            sent_messages = ChatMessage.query.filter_by(sender_id=user_id).all()
+            received_messages = ChatMessage.query.filter_by(receiver_id=user_id).all()
+            
+            # Delete messages where user is sender or receiver
+            for message in sent_messages + received_messages:
+                db.session.delete(message)
+                
+            # Delete associated chat requests
+            sent_requests = ChatRequest.query.filter_by(sender_id=user_id).all()
+            received_requests = ChatRequest.query.filter_by(receiver_id=user_id).all()
+            
+            # Delete chat requests where user is sender or receiver
+            for request in sent_requests + received_requests:
+                db.session.delete(request)
+                
+            # Delete health metrics
+            health_metrics = HealthMetric.query.filter_by(user_id=user_id).all()
+            for metric in health_metrics:
+                db.session.delete(metric)
+                
+            # Delete events created by the user
+            events = Event.query.filter_by(user_id=user_id).all()
+            for event in events:
+                db.session.delete(event)
+                
+            # Delete event signups
+            event_signups = EventSignup.query.filter_by(user_id=user_id).all()
+            for signup in event_signups:
+                db.session.delete(signup)
+            
+            # Finally delete the user
+            db.session.delete(user)
+            db.session.commit()
+            
+            flash(f'User "{username}" has been deleted successfully.', 'success')
+            log_security_event('ADMIN_DELETE_SUCCESS', username, request.remote_addr, f'User deleted with {credential_count} WebAuthn credentials')
+            return redirect(url_for('admin_dashboard'))
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error deleting user {user_id}: {str(e)}")
+            flash('An error occurred while deleting the user. Please try again.', 'error')
+            log_security_event('ADMIN_DELETE_ERROR', username, request.remote_addr, f'Error deleting user: {str(e)}')
+            return redirect(url_for('admin_dashboard'))
+            
+    except Exception as e:
+        app.logger.error(f"Error finding user {user_id}: {str(e)}")
+        flash('User not found or could not be deleted.', 'error')
+        return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
 def admin_edit_user(user_id):
