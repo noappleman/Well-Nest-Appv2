@@ -2109,13 +2109,11 @@ def admin_delete_user(user_id):
         except Exception as e:
             db.session.rollback()
             app.logger.error(f"Error deleting user {user_id}: {str(e)}")
-            flash('An error occurred while deleting the user. Please try again.', 'error')
             log_security_event('ADMIN_DELETE_ERROR', username, request.remote_addr, f'Error deleting user: {str(e)}')
             return redirect(url_for('admin_dashboard'))
             
     except Exception as e:
         app.logger.error(f"Error finding user {user_id}: {str(e)}")
-        flash('User not found or could not be deleted.', 'error')
         return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/edit_user/<int:user_id>', methods=['GET', 'POST'])
