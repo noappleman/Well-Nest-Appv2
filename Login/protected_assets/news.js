@@ -5,6 +5,8 @@ class NewsletterApp {
         this.currentSource = 'general';
         this.apiKey = '7da335179ec2422090bf09a8f4103b56'; // NewsAPI.org key for international news
         this.baseUrl = 'https://newsapi.org/v2';
+        this.rateLimitDuration = 5 * 60 * 1000; // 5 minutes in milliseconds
+        this.cooldownTimer = null;
         this.init();
     }
 
@@ -64,6 +66,22 @@ class NewsletterApp {
         try {
             let articles;
             
+            // Check rate limiting first
+            if (this.isRateLimited()) {
+                // Load cached articles if available
+                articles = this.getCachedArticles();
+                if (articles) {
+                    console.log('Using cached articles due to rate limiting');
+                    this.displayNews(articles);
+                    this.showCooldownTimer();
+                    return;
+                } else {
+                    // No cached articles, show rate limit message
+                    this.showRateLimitMessage();
+                    return;
+                }
+            }
+            
             // Check if it's a Straits Times RSS feed
             if (this.currentSource.startsWith('st-')) {
                 articles = await this.fetchStraitsTimes();
@@ -71,6 +89,10 @@ class NewsletterApp {
                 // Use real API with the provided key for all other sources
                 articles = await this.fetchNewsFromAPI();
             }
+
+            // Cache the articles and update rate limit timestamp
+            this.cacheArticles(articles);
+            this.updateRateLimitTimestamp();
 
             // Display news immediately, then translate in background
             this.displayNews(articles);
@@ -1035,6 +1057,100 @@ class NewsletterApp {
         return localeMap[this.currentLanguage] || 'en-US';
     }
 
+    // Rate limiting methods
+    isRateLimited() {
+        const lastApiCall = localStorage.getItem(`lastApiCall_${this.currentSource}`);
+        if (!lastApiCall) return false;
+        
+        const timeSinceLastCall = Date.now() - parseInt(lastApiCall);
+        return timeSinceLastCall < this.rateLimitDuration;
+    }
+
+    updateRateLimitTimestamp() {
+        localStorage.setItem(`lastApiCall_${this.currentSource}`, Date.now().toString());
+    }
+
+    getRemainingCooldownTime() {
+        const lastApiCall = localStorage.getItem(`lastApiCall_${this.currentSource}`);
+        if (!lastApiCall) return 0;
+        
+        const timeSinceLastCall = Date.now() - parseInt(lastApiCall);
+        const remainingTime = this.rateLimitDuration - timeSinceLastCall;
+        return Math.max(0, remainingTime);
+    }
+
+    cacheArticles(articles) {
+        const cacheKey = `cachedArticles_${this.currentSource}`;
+        localStorage.setItem(cacheKey, JSON.stringify(articles));
+    }
+
+    getCachedArticles() {
+        const cacheKey = `cachedArticles_${this.currentSource}`;
+        const cached = localStorage.getItem(cacheKey);
+        return cached ? JSON.parse(cached) : null;
+    }
+
+    showCooldownTimer() {
+        const remainingTime = this.getRemainingCooldownTime();
+        if (remainingTime <= 0) return;
+
+        // Create cooldown message element
+        const newsGrid = document.getElementById('newsGrid');
+        const cooldownDiv = document.createElement('div');
+        cooldownDiv.id = 'cooldownMessage';
+        cooldownDiv.style.cssText = `
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #495057;
+        `;
+
+        // Update timer every second
+        const updateTimer = () => {
+            const remaining = this.getRemainingCooldownTime();
+            if (remaining <= 0) {
+                if (cooldownDiv.parentNode) {
+                    cooldownDiv.remove();
+                }
+                if (this.cooldownTimer) {
+                    clearInterval(this.cooldownTimer);
+                    this.cooldownTimer = null;
+                }
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            cooldownDiv.innerHTML = `
+                <h4>⏱️ API Rate Limited</h4>
+                <p>Showing cached articles. Next API call available in: <strong>${minutes}:${seconds.toString().padStart(2, '0')}</strong></p>
+                <p><small>Click refresh after the timer expires to get fresh articles</small></p>
+            `;
+        };
+
+        // Insert at the top of news grid
+        newsGrid.insertBefore(cooldownDiv, newsGrid.firstChild);
+        updateTimer();
+        this.cooldownTimer = setInterval(updateTimer, 1000);
+    }
+
+    showRateLimitMessage() {
+        const newsGrid = document.getElementById('newsGrid');
+        const remainingTime = this.getRemainingCooldownTime();
+        const minutes = Math.floor(remainingTime / 60000);
+        const seconds = Math.floor((remainingTime % 60000) / 1000);
+        
+        newsGrid.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <h3>⏱️ API Rate Limited</h3>
+                <p>No cached articles available. Please wait <strong>${minutes}:${seconds.toString().padStart(2, '0')}</strong> before making a new request.</p>
+            </div>
+        `;
+    }
+
     showLoading() {
         document.getElementById('loading').style.display = 'block';
         document.getElementById('newsGrid').style.display = 'none';
@@ -1052,6 +1168,16 @@ class NewsletterApp {
 
     hideError() {
         document.getElementById('errorMessage').style.display = 'none';
+        // Clear any existing cooldown timer
+        if (this.cooldownTimer) {
+            clearInterval(this.cooldownTimer);
+            this.cooldownTimer = null;
+        }
+        // Remove cooldown message if it exists
+        const cooldownMsg = document.getElementById('cooldownMessage');
+        if (cooldownMsg) {
+            cooldownMsg.remove();
+        }
     }
 
     savePreferences() {
