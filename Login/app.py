@@ -2040,7 +2040,6 @@ def admin_logout():
     return redirect(url_for('index'))
 
 @app.route('/admin/delete_user/<int:user_id>', methods=['POST'])
-@csrf.exempt
 def admin_delete_user(user_id):
     if not session.get('admin_logged_in'):
         flash('Access denied. Admin login required.', 'error')
