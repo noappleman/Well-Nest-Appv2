@@ -14,7 +14,7 @@
             <h3 class="card-title mb-0">Event Details</h3>
         </div>
         <div class="card-body">
-            <form method="POST" action="{{ url_for('admin_create_event') }}">
+            <form method="POST" action="{{ url_for('admin_create_event') }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 
                 <div class="row">
@@ -100,8 +100,9 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label for="image_path" class="form-label">Image URL (Optional)</label>
-                    <input type="text" class="form-control" id="image_path" name="image_path" maxlength="255">
+                    <label for="event_image" class="form-label">Event Image (Optional)</label>
+                    <input type="file" class="form-control" id="event_image" name="event_image" accept=".jpg,.jpeg,.png">
+                    <div class="form-text">Only JPG, JPEG, and PNG files are allowed.</div>
                 </div>
                 
                 <div class="d-grid gap-2">

@@ -1836,7 +1836,35 @@ def admin_create_event():
             end_time = datetime.strptime(request.form.get('end_time'), '%H:%M').time()
             organizer = sanitize_input(request.form.get('organizer'))
             contact = sanitize_input(request.form.get('contact'))
-            image_path = sanitize_input(request.form.get('image_path'))
+            # Handle event image upload
+            event_image = request.files.get('event_image')
+            image_path = None
+            
+            if event_image and event_image.filename:
+                # Check if file extension is allowed
+                if not allowed_file(event_image.filename, ['jpg', 'jpeg', 'png']):
+                    flash('Only JPEG, JPG, and PNG files are allowed for event images.', 'error')
+                    return render_template('admin_create_event.html')
+                    
+                # Verify the actual file content using MIME type
+                mime_type = validate_image_mime(event_image)
+                if mime_type not in ['image/jpeg', 'image/png']:
+                    flash('The uploaded file is not a valid image. Only JPEG and PNG files are allowed.', 'error')
+                    return render_template('admin_create_event.html')
+                    
+                # Secure the filename and save the file
+                filename = secure_filename(event_image.filename)
+                # Add timestamp to filename to prevent overwriting
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                event_image_filename = f"event_{timestamp}_{filename}"
+                
+                # Ensure uploads directory exists
+                uploads_dir = os.path.join(app.root_path, 'static/uploads')
+                os.makedirs(uploads_dir, exist_ok=True)
+                
+                # Save the file
+                event_image.save(os.path.join(uploads_dir, event_image_filename))
+                image_path = f"uploads/{event_image_filename}"
             
             # Create new event
             new_event = Event(
