@@ -109,7 +109,7 @@
             </div>
 
             <div id="captchaContainer" class="mb-3" style="min-height: 78px;">
-                <div class="g-recaptcha" data-sitekey="6Lf2VacrAAAAAFqNeYDzHD-S0E1TSt8ZZDvEDlmr" data-theme="light" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
+                <div class="g-recaptcha" data-sitekey="{{ config.get('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI') }}" data-theme="light" data-callback="onRecaptchaSuccess" data-expired-callback="onRecaptchaExpired"></div>
                 <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response">
             </div>
 

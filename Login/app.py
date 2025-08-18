@@ -95,6 +95,10 @@ app.jinja_loader = ChoiceLoader([
 app.config['JSON_AS_ASCII'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 
+# reCAPTCHA configuration
+app.config['RECAPTCHA_SITE_KEY'] = os.environ.get('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')
+app.config['RECAPTCHA_SECRET_KEY'] = os.environ.get('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')
+
 # Security configurations
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = True  # Always use secure cookies
@@ -1084,7 +1088,7 @@ def event_add():
             
         # Verify reCAPTCHA with Google
         data = {
-            'secret': '6Lf2VacrAAAAAOYbaV5K0KkjfSVxf67qQqUMTiCk',  # Test secret key
+            'secret': os.environ.get('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'),
             'response': recaptcha_response
         }
         try:
@@ -1192,7 +1196,7 @@ def event_edit(event_id):
             
         # Verify reCAPTCHA with Google
         data = {
-            'secret': '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe',  # Test secret key
+            'secret': os.environ.get('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe'),
             'response': recaptcha_response
         }
         try:
