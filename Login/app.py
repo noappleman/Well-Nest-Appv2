@@ -2075,7 +2075,7 @@ def admin_delete_user(user_id):
         db.session.delete(request)
         
     # Delete health metrics
-    health_metrics = HealthMetrics.query.filter_by(user_id=user_id).all()
+    health_metrics = HealthMetric.query.filter_by(user_id=user_id).all()
     for metric in health_metrics:
         db.session.delete(metric)
         
