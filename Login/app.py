@@ -261,6 +261,8 @@ def add_security_headers(response):
             f"base-uri 'self'; "
             f"form-action 'self'; "
             f"frame-ancestors 'self'; "
+            f"worker-src 'self' blob:; "
+            f"credentials-src 'self'; "
         )
         
         # Add CSP header
