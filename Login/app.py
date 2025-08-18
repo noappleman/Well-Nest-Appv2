@@ -99,6 +99,13 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = True  # Always use secure cookies
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Add SameSite protection
+
+# Force secure cookies in all environments
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    REMEMBER_COOKIE_SECURE=True,
+    REMEMBER_COOKIE_HTTPONLY=True
+)
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max upload size
 
 # PostgreSQL configuration
@@ -265,6 +272,15 @@ def add_security_headers(response):
         # Only add HSTS header in production and for HTTPS requests
         if os.environ.get('FLASK_ENV') == 'production' and request.is_secure:
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    # Ensure all cookies have the secure flag
+    if response.headers.get('Set-Cookie'):
+        cookies = response.headers.getlist('Set-Cookie')
+        response.headers.pop('Set-Cookie')
+        for cookie in cookies:
+            if 'Secure' not in cookie:
+                cookie += '; Secure'
+            response.headers.add('Set-Cookie', cookie)
     
     return response
 
