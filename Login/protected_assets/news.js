@@ -67,11 +67,8 @@ class NewsletterApp {
             // Check if it's a Straits Times RSS feed
             if (this.currentSource.startsWith('st-')) {
                 articles = await this.fetchStraitsTimes();
-            } else if (this.apiKey === 'YOUR_NEWS_API_KEY') {
-                // Use mock data if no API key is provided
-                articles = this.getMockNews();
             } else {
-                // Use real API with the provided key
+                // Use real API with the provided key for all other sources
                 articles = await this.fetchNewsFromAPI();
             }
 
