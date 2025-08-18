@@ -282,6 +282,32 @@ mail = Mail(app)
 login_manager = LoginManager(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Function to add missing columns to tables
+def add_missing_columns():
+    """Add any missing columns to the database tables"""
+    try:
+        # Check if the last_checkin_timestamp column exists in the users table
+        with db.engine.connect() as conn:
+            # For SQLite
+            if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
+                result = conn.execute(db.text("PRAGMA table_info(users)"))
+                columns = [row[1] for row in result]
+                if 'last_checkin_timestamp' not in columns:
+                    conn.execute(db.text('ALTER TABLE users ADD COLUMN last_checkin_timestamp DATETIME DEFAULT NULL;'))
+                    conn.commit()
+                    app.logger.info("Added last_checkin_timestamp column to users table")
+            # For PostgreSQL
+            elif 'postgresql' in app.config['SQLALCHEMY_DATABASE_URI']:
+                result = conn.execute(db.text("SELECT column_name FROM information_schema.columns WHERE table_name='users'"))
+                columns = [row[0] for row in result]
+                if 'last_checkin_timestamp' not in columns:
+                    conn.execute(db.text('ALTER TABLE users ADD COLUMN last_checkin_timestamp TIMESTAMP DEFAULT NULL;'))
+                    conn.commit()
+                    app.logger.info("Added last_checkin_timestamp column to users table")
+    except Exception as e:
+        app.logger.error(f"Error adding missing columns: {str(e)}")
+        # Continue anyway - the error handling in the routes will handle missing columns
+
 # Function to ensure database schema is up to date
 def ensure_db_schema():
     try:
@@ -563,6 +589,7 @@ class User(UserMixin, db.Model):
     # These columns might not exist in all environments yet
     failed_login_attempts = db.Column(db.Integer, default=0, nullable=True)  # Track failed login attempts
     account_locked_until = db.Column(db.DateTime, nullable=True)  # Timestamp until account is locked
+    last_checkin_timestamp = db.Column(db.DateTime, nullable=True)  # Timestamp of last daily check-in
     
     credentials = db.relationship('WebAuthnCredential', backref=db.backref('user_ref', lazy='joined'), lazy=True,
                                 cascade='all, delete-orphan', passive_deletes=True)
@@ -585,32 +612,17 @@ def load_user(user_id):
 @app.route('/check_checkin_status')
 @login_required
 def check_checkin_status():
-    # Check for any check-ins today
-    today = datetime.utcnow().date()
-    log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'security.log')
-    
+    # Check if user has checked in recently (within the last 5 minutes)
     try:
-        if os.path.exists(log_file_path):
-            with open(log_file_path, 'r') as f:
-                for line in reversed(list(f)):  # Read file in reverse to find most recent first
-                    if 'SECURITY_EVENT' in line and 'daily_checkin' in line and f'"username": "{current_user.username}"' in line:
-                        try:
-                            # Extract the JSON part of the log line
-                            json_str = line.split('SECURITY_EVENT: ')[1].strip()
-                            log_data = json.loads(json_str)
-                            
-                            # Parse the timestamp from the log entry
-                            log_time = datetime.fromisoformat(log_data['timestamp']).date()
-                            
-                            # If we found a check-in from today
-                            if log_time == today:
-                                return jsonify({'checked_in': True})
-                            else:
-                                # Found a check-in but it's from a previous day
-                                return jsonify({'checked_in': False})
-                        except (json.JSONDecodeError, KeyError, ValueError) as e:
-                            app.logger.error(f"Error parsing log entry: {str(e)}")
-                            continue
+        # Check the database for the last check-in timestamp
+        if current_user.last_checkin_timestamp:
+            time_since_last_checkin = datetime.utcnow() - current_user.last_checkin_timestamp
+            if time_since_last_checkin.total_seconds() < 300:  # 5 minutes = 300 seconds
+                # User has checked in within the last 5 minutes
+                return jsonify({
+                    'checked_in': True,
+                    'next_available': (current_user.last_checkin_timestamp + timedelta(minutes=5)).isoformat()
+                })
     except Exception as e:
         app.logger.error(f"Error checking check-in status: {str(e)}")
     
@@ -628,38 +640,23 @@ def submit_feedback():
             feedback = data.get('feedback', '')
             username = data.get('username', current_user.username)
             
-            # Check for recent submissions (within last 5 minutes)
-            five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
-            log_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'security.log')
-            
+            # Check for recent submissions (within last 5 minutes) using database
             try:
-                if os.path.exists(log_file_path):
-                    with open(log_file_path, 'r') as f:
-                        for line in reversed(list(f)):  # Read file in reverse to find most recent first
-                            if 'SECURITY_EVENT' in line and 'daily_checkin' in line and f'"username": "{current_user.username}"' in line:
-                                try:
-                                    # Extract the JSON part of the log line
-                                    json_str = line.split('SECURITY_EVENT: ')[1].strip()
-                                    log_data = json.loads(json_str)
-                                    
-                                    # Parse the timestamp from the log entry
-                                    log_time = datetime.fromisoformat(log_data['timestamp'])
-                                    
-                                    # If we found a matching log entry within the last 5 minutes, rate limit
-                                    if log_time > five_minutes_ago:
-                                        return jsonify({
-                                            'status': 'error',
-                                            'message': 'You can only submit your daily check-in once every 5 minutes.'
-                                        }), 429
-                                    else:
-                                        # Found a log entry but it's older than 5 minutes, so we can proceed
-                                        break
-                                except (json.JSONDecodeError, KeyError, ValueError) as e:
-                                    app.logger.error(f"Error parsing log entry: {str(e)}")
-                                    continue
+                if current_user.last_checkin_timestamp:
+                    time_since_last_checkin = datetime.utcnow() - current_user.last_checkin_timestamp
+                    if time_since_last_checkin.total_seconds() < 300:  # 5 minutes = 300 seconds
+                        next_available = (current_user.last_checkin_timestamp + timedelta(minutes=5)).strftime('%H:%M:%S')
+                        return jsonify({
+                            'status': 'error',
+                            'message': f'You can only submit feedback once every 5 minutes. Please try again after {next_available}.'
+                        }), 429  # 429 Too Many Requests
             except Exception as e:
-                app.logger.error(f"Error checking rate limit: {str(e)}")
-                # Continue with submission if there's an error checking the log file
+                app.logger.error(f"Error checking recent submissions: {str(e)}")
+                # Continue with submission if there's an error checking the database
+            
+            # Update the last check-in timestamp in the database
+            current_user.last_checkin_timestamp = datetime.utcnow()
+            db.session.commit()
             
             # Log the daily check-in
             log_security_event(
@@ -688,6 +685,20 @@ def submit_feedback():
                 return jsonify({
                     'status': 'error',
                     'message': 'Please provide a message.'
+                }), 400
+            
+            # Spam detection for website feedback
+            is_spam = detect_spam(message, name, email)
+            if is_spam:
+                log_security_event(
+                    event_type='spam_detected',
+                    username=current_user.username,
+                    ip_address=request.remote_addr,
+                    details=f"Potential spam detected in feedback: {message[:100]}..."
+                )
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Your message has been flagged as potential spam. Please try again with different content.'
                 }), 400
             
             # Log the website feedback
@@ -733,6 +744,51 @@ def submit_feedback():
             'status': 'error',
             'message': 'An error occurred while submitting your feedback.'
         }), 500
+
+def detect_spam(message, name='', email=''):
+    """Simple spam detection for feedback messages"""
+    # Convert to lowercase for case-insensitive matching
+    message_lower = message.lower()
+    name_lower = name.lower()
+    
+    # Check for common spam indicators
+    spam_keywords = [
+        'viagra', 'cialis', 'casino', 'lottery', 'winner', 'prize', 'free money',
+        'bitcoin', 'investment opportunity', 'earn money fast', 'work from home',
+        'make money online', 'buy now', 'limited offer', 'discount', 'click here',
+        'best price', 'cheap', 'free trial', 'guaranteed', 'act now', 'urgent',
+        'congratulations', 'you have won', 'million dollar', 'nigerian prince',
+        'pharmacy', 'medication', 'prescription', 'weight loss', 'diet pill'
+    ]
+    
+    # Check for spam keywords in message
+    for keyword in spam_keywords:
+        if keyword in message_lower:
+            return True
+    
+    # Check for excessive URLs (potential spam)
+    url_count = message_lower.count('http://') + message_lower.count('https://')
+    if url_count > 3:
+        return True
+    
+    # Check for all caps (shouting)
+    if message.isupper() and len(message) > 20:
+        return True
+    
+    # Check for repetitive characters (e.g., "!!!!!!")
+    for char in '!?.,$*':
+        if char * 5 in message:
+            return True
+    
+    # Check for suspicious email domains in the provided email
+    suspicious_domains = ['xyz', 'tk', 'ml', 'ga', 'cf', 'gq', 'temp', 'disposable', 'mailinator']
+    if email and '@' in email:
+        domain = email.split('@')[1].lower()
+        for suspicious in suspicious_domains:
+            if suspicious in domain:
+                return True
+    
+    return False
 
 def send_feedback_email(username, rating, feedback):
     """Send feedback email to the support team."""
@@ -2978,6 +3034,10 @@ def list_routes():
         line = urllib.parse.unquote(f"{rule.endpoint:50s} {methods:20s} {rule}")
         output.append(line)
     return '<pre>' + '\n'.join(sorted(output)) + '</pre>'
+
+# Add missing columns when the app starts
+with app.app_context():
+    add_missing_columns()
 
 if __name__ == '__main__':
     # For better WebAuthn support, try HTTPS
