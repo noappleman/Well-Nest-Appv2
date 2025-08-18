@@ -95,6 +95,9 @@ class NewsletterApp {
 
         if (this.currentSource === 'general') {
             url = `${this.baseUrl}/top-headlines?country=sg&language=${language}&apiKey=${this.apiKey}`;
+        } else if (this.currentSource.startsWith('st-')) {
+            // If it's a Straits Times source, use fetchStraitsTimes instead
+            return await this.fetchStraitsTimes();
         } else {
             url = `${this.baseUrl}/top-headlines?sources=${this.currentSource}&apiKey=${this.apiKey}`;
         }
