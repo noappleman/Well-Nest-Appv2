@@ -97,7 +97,8 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'default-secret-key')
 
 # Security configurations
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') == 'production'  # Only in production
+app.config['SESSION_COOKIE_SECURE'] = True  # Always use secure cookies
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # Add SameSite protection
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max upload size
 
 # PostgreSQL configuration
