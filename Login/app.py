@@ -622,7 +622,7 @@ def check_checkin_status():
                 next_available_time = current_user.last_checkin_timestamp + timedelta(minutes=5)
                 return jsonify({
                     'checked_in': True,
-                    'next_available': next_available_time.isoformat(),
+                    'next_available': next_available_time.strftime('%Y-%m-%dT%H:%M:%S'),
                     'seconds_remaining': 300 - time_since_last_checkin.total_seconds()
                 })
     except Exception as e:
@@ -660,7 +660,7 @@ def submit_feedback():
                         return jsonify({
                             'status': 'error',
                             'message': f'You can only check in once every 5 minutes. Please try again after {next_available_str}.',
-                            'next_available': next_available.isoformat(),
+                            'next_available': next_available.strftime('%Y-%m-%dT%H:%M:%S'),
                             'seconds_remaining': seconds_remaining
                         }), 429  # 429 Too Many Requests
             except Exception as e:

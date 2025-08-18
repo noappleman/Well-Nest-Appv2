@@ -183,8 +183,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedbackForm.classList.add('d-none');
                 thankYouMessage.classList.remove('d-none');
                 
-                // Format the next available time
-                const nextAvailable = new Date(data.next_available);
+                // Format the next available time - convert from UTC to local time
+                const nextAvailable = new Date(data.next_available + 'Z'); // Add Z to parse as UTC
                 const formattedTime = nextAvailable.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 
                 // Update the thank you message with cooldown information
