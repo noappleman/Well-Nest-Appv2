@@ -96,13 +96,24 @@ class NewsletterApp {
             url = `${this.baseUrl}/top-headlines?sources=${this.currentSource}&apiKey=${this.apiKey}`;
         }
 
+        console.log('Fetching from URL:', url);
+        
         const response = await fetch(url);
         if (!response.ok) {
+            console.error('API response not ok:', response.status, response.statusText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
+        console.log('API response data:', data);
+        
+        if (data.status !== 'ok') {
+            console.error('API returned error:', data.message);
+            throw new Error(`API error: ${data.message}`);
+        }
+        
         const articles = data.articles || [];
+        console.log('Articles count:', articles.length);
         
         // Add translation markers for NewsAPI articles
         return articles.map(article => ({
