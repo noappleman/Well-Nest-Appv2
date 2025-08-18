@@ -62,6 +62,10 @@ Thumbs.db
 instance/
 .webassets-cache
 
+# Uploads (exclude user uploaded files from git)
+Login/static/uploads/
+!Login/static/uploads/.gitkeep
+
 # Security
 *.key
 *.pem

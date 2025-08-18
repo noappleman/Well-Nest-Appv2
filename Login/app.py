@@ -1696,8 +1696,12 @@ def edit_profile():
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             profile_picture_filename = f"{current_user.id}_{timestamp}_{filename}"
             
+            # Ensure uploads directory exists
+            uploads_dir = os.path.join(app.root_path, 'static/uploads')
+            os.makedirs(uploads_dir, exist_ok=True)
+            
             # Save the file
-            profile_picture.save(os.path.join(app.root_path, 'static/uploads', profile_picture_filename))
+            profile_picture.save(os.path.join(uploads_dir, profile_picture_filename))
         
         # Input validation
         username_valid, username_msg = validate_username(username)
