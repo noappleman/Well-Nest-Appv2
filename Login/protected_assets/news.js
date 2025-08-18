@@ -928,7 +928,7 @@ class NewsletterApp {
             // Set image source directly
             img.src = article.urlToImage;
             // Ensure consistent image dimensions
-            img.style.width = '100%';
+            img.style.width = '70%';
             img.style.height = '200px';
             img.style.objectFit = 'cover';
             
