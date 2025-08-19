@@ -255,7 +255,7 @@ def add_security_headers(response):
             f"style-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
             f"img-src 'self' data: blob: https://*.unsplash.com https://*.straitstimes.com https://*.reutersmedia.net https://*.bbc.co.uk https://*.bbci.co.uk https://*.cnn.com https://*.reuters.com https://*.ap.org https://*.indiatimes.com https://*.amazonaws.com https://*.cloudfront.net https://*; "
             f"font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
-            f"connect-src 'self' https://newsapi.org https://api.rss2json.com https://api.allorigins.win https://translate.googleapis.com https://api.mymemory.translated.net; "
+            f"connect-src 'self' ws: wss: https://newsapi.org https://api.rss2json.com https://api.allorigins.win https://translate.googleapis.com https://api.mymemory.translated.net; "
             f"frame-src 'self' https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/; "
             f"object-src 'none'; "
             f"base-uri 'self'; "
